@@ -1,0 +1,16 @@
+{
+  "tasks" : [
+    {
+      "command" : "swift test",
+      "name" : "Run"
+    },
+    {
+      "command" : "swift build",
+      "name" : "Build"
+    },
+    {
+      "command" : "swiftformat  . --swift-version 6.3",
+      "name" : "Format"
+    }
+  ]
+}
