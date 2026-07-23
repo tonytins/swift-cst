@@ -36,6 +36,7 @@ print(cst)
 You are not limited to numbers as keys. In fact, both text and event emojis are valid.
 
 ```swift
+// %d represents digits.
 let input = """
 🦊 ^The quick brown fox %s over the lazy dog.^
 newMail ^You have %d new messages^

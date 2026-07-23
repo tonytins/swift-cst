@@ -11,11 +11,10 @@ import Testing
 }
 
 @Test func variableTest() {
+    let quickFox = "1 ^The quick brown fox %s over the lazy dog.^"
+    let parsed = CST.parse(quickFox, key: 1, variables: "leaps")
     
-    let content = "1 ^Hello %s!^"
-    let cst = CST.parse(content, key: 1, variables: "World")
-    
-    #expect(cst == "Hello World!")
+    #expect(parsed == "The quick brown fox leaps over the lazy dog.")
 }
 
 @Test func emojiTest() {
@@ -25,4 +24,17 @@ import Testing
     let home = CST.parse(cst, key: "🏠")
     
     #expect(home == expected)
+}
+
+@Test func multiLine() {
+    let input = """
+    🦊 ^The quick brown fox %s over the lazy dog.^
+    newMail ^You have %d new messages.^
+    """
+
+    let quickFox = CST.parse(input, key: "🦊", variables: "leaps")
+    let mail = CST.parse(input, key: "newMail", variables: 5)
+    
+    #expect(quickFox == "The quick brown fox leaps over the lazy dog.")
+    #expect(mail == "You have 5 new messages.")
 }

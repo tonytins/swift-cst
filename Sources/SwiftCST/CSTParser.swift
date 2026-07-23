@@ -6,24 +6,18 @@ struct CST {
     private static let caret: Character = "^"
     private static let lineEndings = ["\u{000A}", "\u{000D}", "\u{000D}\u{000A}", "\u{2028}"]
 
-    static func parse(_ content: String, key: Int, variables: String...) -> String {
-        parse(content, key: String(key), variables: variables)
-    }
 
-    static func parse(_ content: String, key: String, variables: [String] = []) -> String {
+    static func parse(_ content: String,
+                      key: some CustomStringConvertible,
+                      variables: any CustomStringConvertible...) -> String {
+        
         let entries = normalizeEntries(content)
-        let entry = getEntry(entries, key: key)
-        return substituteVariables(entry, with: variables)
+        let entry = getEntry(entries, key: String(describing: key))
+        let convertAnyToString = variables.map { String(describing: $0) }
+        
+        return substituteVariables(entry, with: convertAnyToString)
     }
-    
-    
-    // static func parse(_ content: String, key: String, variables: String...) -> String {
-    //     parse(content, key: key, variables: variables)
-    // }
 
-    static func parse(_ content: String, key: Int, variables: [String] = []) -> String {
-        parse(content, key: String(key), variables: variables)
-    }
 
     private static func normalizeEntries(_ content: String) -> [String] {
         var normalized = content

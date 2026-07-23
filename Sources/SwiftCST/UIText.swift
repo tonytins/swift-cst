@@ -1,16 +1,8 @@
 import Foundation
 
 // TODO: Remove "internal" keywords when UIText has been fully tested
+internal struct UIText {
 
-internal protocol GetText {
-    var basePath: String { get set }
-    
-    func getText(id: Int, key: Int) -> String
-    func getText(id: Int, key: String) -> String
-}
-
-
-internal struct UIText: GetText {
     private var language: String
     var basePath: String
     
@@ -29,8 +21,8 @@ internal struct UIText: GetText {
         self.basePath = basePath
     }
     
-    
-    func getText(id: Int, key: String) -> String {
+    func getText(id: some CustomStringConvertible,
+                 key: some CustomStringConvertible, variables: any CustomStringConvertible...) -> String {
         let langPath = languageDictionaryPath(for: language)
         guard fileSystemAvailable(at: langPath) else { return missingMessage }
         
@@ -42,14 +34,7 @@ internal struct UIText: GetText {
             return missingMessage
         }
         
-        
-        let variables: [String] = []
-        
         return CST.parse(content, key: key, variables: variables)
-    }
-    
-    func getText(id: Int, key: Int) -> String {
-        getText(id: id, key: String(key))
     }
     
     private func findLanguageFile(in directory: String, with id: Int) -> String? {
