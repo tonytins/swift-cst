@@ -28,7 +28,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/tonytins/swift-cst.git", branch: "main"),
+        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.1.0"),
     ],
     targets: [
         .executableTarget(name: "<your-game>", dependencies: [
@@ -55,7 +55,7 @@ print(helloWorld)
 
 | swift-cst    | Minimum Swift Version |
 | ------- | --------------------- |
-| ``main`` | 6.0                   |
+| ``0.1.0 ...`` | 6.3                   |
 
 ## License
 

@@ -54,25 +54,47 @@ struct CST {
         var result = template
         var variableIndex = 0
         
-        let regex = try! Regex("%(?:(\\d+))?d|%s")
-        
-        while variableIndex < variables.count {
-            guard let match = result.firstMatch(of: regex) else {
-                break
+        if #available(macOS 13, *) {
+            let regex = try! Regex("%(?:(\\d+))?d|%s")
+            
+            while variableIndex < variables.count {
+                guard let match = result.firstMatch(of: regex) else {
+                    break
+                }
+                
+                let matchedText = String(result[match.range])
+                let paddingWidth = extractPaddingWidth(
+                    from: matchedText
+                )
+                let substitution = formatVariable(
+                    variables[variableIndex],
+                    with: paddingWidth
+                )
+                
+                result.replaceSubrange(match.range, with: substitution)
+                variableIndex += 1
             }
+        } else {
+            var searchStartIndex = result.startIndex
             
-            let matchedText = String(result[match.range])
-            let paddingWidth = extractPaddingWidth(
-                from: matchedText
-            )
-            let substitution = formatVariable(
-                variables[variableIndex],
-                with: paddingWidth
-            )
-            
-            result.replaceSubrange(match.range, with: substitution)
-            variableIndex += 1
+            while variableIndex < variables.count, searchStartIndex < result.endIndex {
+                guard let formatRange = result.range(
+                    of: "%",
+                    range: searchStartIndex..<result.endIndex) else { break }
+                let nextIndex = result.index(after: formatRange.lowerBound)
+                let formatChar = result[nextIndex]
+                let formatEndIndex = result.index(after: nextIndex)
+                
+                switch formatChar {
+                case "s":
+                    
+                default:
+                    searchStartIndex = formatEndIndex
+                }
+            }
         }
+        
+        
 
         return result
     }
