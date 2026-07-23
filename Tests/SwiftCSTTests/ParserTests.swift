@@ -1,40 +1,46 @@
 @testable import SwiftCST
 import Testing
 
+// TODO: name these better
+
+let leapingFox: String = "The quick brown fox leaped over the lazy dog."
+let quickFox: String = "The quick brown fox %s over the lazy dog."
+let foxAction = "leaped"
+
+// WARNING: These will temporarily fail on macOS 12 and earlier!
+
 @Test func singleLine() {
     
-    let expected = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin ac dictum orci, at tincidunt nulla. Donec aliquet, eros non interdum posuere, ipsum sapien molestie nunc, nec facilisis libero ipsum et risus. In sed lorem vel ipsum placerat viverra."
-    let content = "101 ^\(expected)^"
-    let cst = CST.parse(content, key: 101)
+    let expected = "The quick brown fox jumps over the lazy dog."
+    let content = "1 ^\(expected)^"
+    let parsed = CST.parse(content, key: 1)
     
-    #expect(cst == expected)
+    #expect(parsed == expected)
 }
 
 @Test func variableTest() {
-    let quickFox = "1 ^The quick brown fox %s over the lazy dog.^"
-    let parsed = CST.parse(quickFox, key: 1, variables: "leaps")
     
-    #expect(parsed == "The quick brown fox leaps over the lazy dog.")
+    let parsed = CST.parse("1 ^\(quickFox)^", key: 1, variables: foxAction)
+    
+    #expect(parsed == leapingFox)
 }
 
 @Test func emojiTest() {
     
-    let expected = "We're home!"
-    let cst = "🏠 ^\(expected)^"
-    let home = CST.parse(cst, key: "🏠")
+    let parsed = CST.parse("🦊 ^\(quickFox)^", key: "🦊", variables: foxAction)
     
-    #expect(home == expected)
+    #expect(parsed == leapingFox)
 }
 
 @Test func multiLine() {
     let input = """
-    🦊 ^The quick brown fox %s over the lazy dog.^
+    🦊 ^\(quickFox)^
     newMail ^You have %d new messages.^
     """
 
-    let quickFox = CST.parse(input, key: "🦊", variables: "leaps")
+    let fox = CST.parse(input, key: "🦊", variables: foxAction)
     let mail = CST.parse(input, key: "newMail", variables: 5)
     
-    #expect(quickFox == "The quick brown fox leaps over the lazy dog.")
+    #expect(fox == leapingFox)
     #expect(mail == "You have 5 new messages.")
 }

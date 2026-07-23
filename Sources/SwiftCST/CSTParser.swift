@@ -87,7 +87,7 @@ struct CST {
                 
                 switch formatChar {
                 case "s":
-                    
+                    break
                 default:
                     searchStartIndex = formatEndIndex
                 }
