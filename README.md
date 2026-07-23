@@ -6,12 +6,13 @@ SwiftCST is a library for parsing Maxis' key-value pair format. It can be used i
 
 Caret-Separated Text (or CST) is a key-value pair format represented by digits or words as keys and the value as text enclosed between carets. (e.g. `<key> ^<value>^`) This was used by The Sims Online to make translation easier.
 
-In SwiftCST, C-style comments are supported. 
-
 ## Features
 
-- [x] Variables
+- [ ]  TSO compatible
+    - [ ] Keys above values
+    - [x] Variables
 - [x] Multiline values
+- [x] C-style comments
 - [ ] UIText
 
 ### Limitations
@@ -49,8 +50,6 @@ let helloWorld = CST.parse(content, key: 1, variables: "World")
 
 print(helloWorld)
 ```
-
-See the [documentation](docs/REMADE.md) for more info.
 
 ## Supported Versions
 
