@@ -1,5 +1,7 @@
 import Foundation
 
+internal let missingMessage = "*** MISSING ***"
+
 struct CST {
     private static let caret: Character = "^"
     private static let lineEndings = ["\u{000A}", "\u{000D}", "\u{000D}\u{000A}", "\u{2028}"]
@@ -51,7 +53,7 @@ struct CST {
             )
         }
 
-        return "*** MISSING ***"
+        return missingMessage
     }
 
     private static func substituteVariables(_ template: String, with variables: [String]) -> String {

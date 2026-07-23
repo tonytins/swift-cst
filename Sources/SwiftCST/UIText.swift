@@ -1,14 +1,16 @@
 import Foundation
 
-protocol UIText {
+// TODO: Remove "internal" keywords when UIText has been fully tested
+
+internal protocol GetText {
     var basePath: String { get set }
     
     func getText(id: Int, key: Int) -> String
     func getText(id: Int, key: String) -> String
 }
 
-// TODO: Remove internal keyword when finished
-internal struct LocalizedText: UIText {
+
+internal struct UIText: GetText {
     private var language: String
     var basePath: String
     
@@ -30,14 +32,49 @@ internal struct LocalizedText: UIText {
     
     func getText(id: Int, key: String) -> String {
         let langPath = languageDictionaryPath(for: language)
+        guard fileSystemAvailable(at: langPath) else { return missingMessage }
+        
+        guard let filePath = readFileContent(at: langPath) else {
+            return missingMessage
+        }
+        
+        guard let content = readFileContent(at: filePath) else {
+            return missingMessage
+        }
         
         
-        return ""
-        // return CST.parse(, key: <#T##Int#>, variables: <#T##String...##String#>)
+        let variables: [String] = []
+        
+        return CST.parse(content, key: key, variables: variables)
     }
     
     func getText(id: Int, key: Int) -> String {
         getText(id: id, key: String(key))
+    }
+    
+    private func findLanguageFile(in directory: String, with id: Int) -> String? {
+        let fileManager = FileManager.default
+        guard let files = try? fileManager.contentsOfDirectory(
+            atPath: directory
+        ) else { return nil }
+        
+        let filePattern = "_\(id)_"
+        let cstFile = files.first { file in
+            file.contains(filePattern) && file.hasSuffix(".cst")
+        }
+        
+        guard let fileName = cstFile else { return nil }
+        
+        return (directory as NSString).appendingPathComponent(fileName)
+        
+    }
+    
+    private func readFileContent(at path: String) -> String? {
+        do {
+            return try String(contentsOfFile: path, encoding: .utf8)
+        } catch {
+            return nil
+        }
     }
     
     private func languageDictionaryPath(for language: String) -> String {
@@ -48,5 +85,9 @@ internal struct LocalizedText: UIText {
     private static func defaultBasePath() -> String {
         let bundlePath = Bundle.main.bundlePath
         return (bundlePath as NSString).appendingPathComponent("uitext")
+    }
+    
+    private func fileSystemAvailable(at path: String) -> Bool {
+        FileManager.default.fileExists(atPath: path)
     }
 }

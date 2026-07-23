@@ -45,12 +45,14 @@ Or in Xcode: File -> Add Package Dependencies, then paste the repo URL.
 
 ```swift
 let content = "1 ^Hello %s!^" // %s represents a string variable
-let helloWorld = CST.parse(cst, key: 1, variables: "World")
+let helloWorld = CST.parse(content, key: 1, variables: "World")
 
-print(helloworld)
+print(helloWorld)
 ```
 
-### Supported Versions
+See the [documentation](docs/REMADE.md) for more info.
+
+## Supported Versions
 
 | swift-cst    | Minimum Swift Version |
 | ------- | --------------------- |
