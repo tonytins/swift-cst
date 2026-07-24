@@ -1,6 +1,6 @@
 # SwiftCST
 
-SwiftCST is a library for parsing Maxis' key-value pair format.
+SwiftCST is a library for asynchronously parsing Maxis' key-value pair format.
 
 ## What is CST?
 
@@ -14,7 +14,7 @@ If you want to create your own framework based on SwiftCST, you can use the `CST
 
 ```swift
 let quickFox = "1 ^The quick brown fox jumps over the lazy dog.^"
-let cst = CST.parse(content, key: 1)
+let cst = await CST.parse(content, key: 1)
 
 print(cst)
 ```
@@ -25,7 +25,7 @@ You may need to parse one or more variables.
 
 ```swift
 let quickFox = "1 ^The quick brown fox %s over the lazy dog.^" // %s represents a string variable
-let cst = CST.parse(quickFox, key: 1, variables: "leaps")
+let cst = await CST.parse(quickFox, key: 1, variables: "leaps")
 
 
 print(cst)
@@ -39,11 +39,11 @@ You are not limited to numbers as keys. In fact, both text and event emojis are 
 // %d represents digits.
 let input = """
 🦊 ^The quick brown fox %s over the lazy dog.^
-newMail ^You have %d new messages^
+mail ^You have %d new messages^
 """
 
-let quickFox = CST.parse(input, key: "🦊", variables: "leaps")
-let mail = CST.parse(input, key: "newMail", variables: 5)
+let quickFox = await CST.parse(input, key: "🦊", variables: "leaps")
+let mail = await CST.parse(input, key: "mail", variables: 5)
 
 let output = """
 \(quickFox)

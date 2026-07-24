@@ -6,16 +6,30 @@ enum CST {
     private static let caret: Character = "^"
     private static let lineEndings = ["\u{000A}", "\u{000D}",
                                       "\u{000D}\u{000A}", "\u{2028}"]
+    
+    private static func locator(_ content: String,
+                                key: some CustomStringConvertible,
+                                variables: any CustomStringConvertible...) -> String
+    {
+        let entries = normalizeEntries(content)
+        let entry = findEntry(entries, key: String(describing: key))
+        let convertAnyToString = variables.map { String(describing: $0) }
+
+        return substituteVariables(entry, with: convertAnyToString)
+    }
 
     static func parse(_ content: String,
                       key: some CustomStringConvertible,
                       variables: any CustomStringConvertible...) async -> String
     {
-        let entries = normalizeEntries(content)
-        let entry = getEntry(entries, key: String(describing: key))
-        let convertAnyToString = variables.map { String(describing: $0) }
-
-        return substituteVariables(entry, with: convertAnyToString)
+        return locator(content, key: key, variables: variables)
+    }
+    
+    static func parse(_ content: String,
+                      key: some CustomStringConvertible,
+                      variables: any CustomStringConvertible...) -> String
+    {
+        return locator(content, key: key, variables: variables)
     }
 
     private static func normalizeEntries(_ content: String) -> [String] {
@@ -35,7 +49,7 @@ enum CST {
             }
     }
 
-    private static func getEntry(_ entries: [String], key: String) -> String {
+    private static func findEntry(_ entries: [String], key: String) -> String {
         for entry in entries {
             guard entry.hasPrefix(key) else { continue }
             guard let startIndex = entry.firstIndex(of: caret) else { continue }

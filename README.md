@@ -1,6 +1,6 @@
 # 🔠 SwiftCST
 
-SwiftCST is a library for parsing Maxis' key-value pair format. It can be used in conjunction with your own custom frameworks, or the original `UIText` APIs.
+SwiftCST is a library for asynchronously parsing Maxis' key-value pair format. It can be used in conjunction with your own custom frameworks, or the original `UIText` APIs.
 
 ## What is CST?
 
@@ -13,6 +13,7 @@ Caret-Separated Text (or CST) is a key-value pair format represented by digits o
     - [x] Variables
 - [x] Multiline values
 - [x] C-style comments
+- [x] Asynchronous support
 - [ ] UIText
 
 ### Limitations
@@ -46,7 +47,7 @@ Or in Xcode: File -> Add Package Dependencies, then paste the repo URL.
 
 ```swift
 let content = "1 ^Hello %s!^" // %s represents a string variable
-let helloWorld = CST.parse(content, key: 1, variables: "World")
+let helloWorld = await CST.parse(content, key: 1, variables: "World")
 
 print(helloWorld)
 ```
