@@ -6,8 +6,8 @@ struct ParserTests {
     let quickFox: String = "The quick brown fox %s over the lazy dog."
 
     @Test(arguments: ["1", "🦊", "fox"], ["jumped", "leaped", "flew"])
-    func singleLineTest(keys: String, action: String) {
-        let parsed = CST.parse(
+    func singleLineTest(keys: String, action: String) async {
+        let parsed = await CST.parse(
             "\(keys) ^\(quickFox)^",
             key: keys,
             variables: action,
@@ -17,14 +17,14 @@ struct ParserTests {
     }
 
     @Test(arguments: ["1", "🦊", "fox"], ["mail", "2", "📧", "📫"])
-    func multiLineTest(fox: String, mail: String) {
+    func multiLineTest(fox: String, mail: String) async {
         let input = """
         \(fox) ^\(quickFox)^
         \(mail) ^You have %d new messages.^
         """
 
-        let fox = CST.parse(input, key: fox, variables: "leaped")
-        let mail = CST.parse(input, key: mail, variables: 5)
+        let fox = await CST.parse(input, key: fox, variables: "leaped")
+        let mail = await CST.parse(input, key: mail, variables: 5)
 
         #expect(fox == "The quick brown fox leaped over the lazy dog.")
         #expect(mail == "You have 5 new messages.")

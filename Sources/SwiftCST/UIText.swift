@@ -14,7 +14,7 @@ class UIText {
 
     func getText(id: Int,
                  key: some CustomStringConvertible,
-                 variables: any CustomStringConvertible...) -> String
+                 variables: any CustomStringConvertible...) async -> String
     {
         var langPath = languageDictionaryPath(for: language)
 
@@ -28,7 +28,7 @@ class UIText {
             return missingMessage
         }
 
-        return CST.parse(content, key: key, variables: variables)
+        return await CST.parse(content, key: key, variables: variables)
     }
 
     private func findLanguageFile(in directory: String, with id: Int) -> String? {

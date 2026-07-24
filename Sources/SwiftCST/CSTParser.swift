@@ -9,7 +9,7 @@ enum CST {
 
     static func parse(_ content: String,
                       key: some CustomStringConvertible,
-                      variables: any CustomStringConvertible...) -> String
+                      variables: any CustomStringConvertible...) async -> String
     {
         let entries = normalizeEntries(content)
         let entry = getEntry(entries, key: String(describing: key))
