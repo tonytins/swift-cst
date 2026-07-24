@@ -7,7 +7,7 @@ enum CST {
     private static let lineEndings = ["\u{000A}", "\u{000D}",
                                       "\u{000D}\u{000A}", "\u{2028}"]
     
-    private static func locator(_ content: String,
+    private static func scanAndBuild(_ content: String,
                                 key: some CustomStringConvertible,
                                 variables: any CustomStringConvertible...) -> String
     {
@@ -22,14 +22,14 @@ enum CST {
                       key: some CustomStringConvertible,
                       variables: any CustomStringConvertible...) async -> String
     {
-        return locator(content, key: key, variables: variables)
+        return scanAndBuild(content, key: key, variables: variables)
     }
     
     static func parse(_ content: String,
                       key: some CustomStringConvertible,
                       variables: any CustomStringConvertible...) -> String
     {
-        return locator(content, key: key, variables: variables)
+        return scanAndBuild(content, key: key, variables: variables)
     }
 
     private static func normalizeEntries(_ content: String) -> [String] {
@@ -62,13 +62,16 @@ enum CST {
 
         return missingMessage
     }
-
+    
+    
     private static func substituteVariables(_ template: String,
                                             with variables: [String]) -> String
     {
         var result = template
         var variableIndex = 0
-
+        
+        // On macOS 12 and earlier, we parse variables
+        // through a rather convoluted method.
         if #available(macOS 13, *) {
             let regex = try! Regex("%(?:(\\d+))?d|%s")
 
@@ -137,6 +140,7 @@ enum CST {
     }
 
     @available(macOS 13, *)
+    /// The modern method of padding digits for %02d formats by using Regex.
     private static func performPaddedSubstitution(from matchedText: String) -> Int {
         guard matchedText.contains("d") else { return 0 }
 
@@ -145,13 +149,9 @@ enum CST {
 
         return Int(match.count)
     }
-
-    private static func performPaddedSubstitution(_ result: inout String,
-                                                  formatRange _: Range<String.Index>, nextIndex: String.Index,
-                                                  variables _: [String],
-                                                  variableIndex _: inout Int,
-                                                  searchStartIndex: inout String.Index)
-    {
+    
+    /// The clunky method of parsing padded digits for %02d formats on older systems.
+    private static func performPaddedSubstitution(_ result: inout String, formatRange: Range<String.Index>, nextIndex: String.Index, variables: [String], variableIndex: inout Int, searchStartIndex: inout String.Index) {
         var endIndex = nextIndex
         var paddingWidth = ""
 
@@ -166,8 +166,21 @@ enum CST {
         }
 
         let padCount = Int(paddingWidth) ?? 0
-        // let paddedValue = padString(variables[variableIndex], toWidth: padCount)
+        let paddedValue = padString(
+            variables[variableIndex],
+            toWidth: padCount
+        )
+        
         let finalEndIndex = result.index(after: endIndex)
+        
+        result
+            .replaceSubrange(
+                formatRange.lowerBound..<finalEndIndex,
+                with: paddedValue
+            )
+        variableIndex += 1
+        searchStartIndex = result
+            .index(formatRange.lowerBound, offsetBy: paddedValue.count)
     }
 
     private static func formatVariable(_ value: String, with paddingWidth: Int) -> String {
