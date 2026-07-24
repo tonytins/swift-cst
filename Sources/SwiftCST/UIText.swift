@@ -1,7 +1,7 @@
 import Foundation
 
 // TODO: Remove "internal" keywords when UIText has been fully tested
-class UIText {
+internal class UIText {
     private var language: String
     private var basePath: String
     private var isDebug: Bool
