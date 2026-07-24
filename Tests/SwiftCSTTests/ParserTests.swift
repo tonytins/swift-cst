@@ -1,43 +1,32 @@
 @testable import SwiftCST
 import Testing
 
-// TODO: name these better
+struct ParserTests {
+    // TODO: name these better
+    let quickFox: String = "The quick brown fox %s over the lazy dog."
 
-let leapingFox: String = "The quick brown fox leaped over the lazy dog."
-let quickFox: String = "The quick brown fox %s over the lazy dog."
-let foxAction = "leaped"
+    @Test(arguments: ["1", "🦊", "fox"], ["jumped", "leaped", "flew"])
+    func singleLineTest(keys: String, action: String) {
+        let parsed = CST.parse(
+            "\(keys) ^\(quickFox)^",
+            key: keys,
+            variables: action,
+        )
 
-// WARNING: These will temporarily fail on macOS 12 and earlier!
+        #expect(parsed == "The quick brown fox \(action) over the lazy dog.")
+    }
 
-@Test func singleLine() {
-    let expected = "The quick brown fox jumps over the lazy dog."
-    let content = "1 ^\(expected)^"
-    let parsed = CST.parse(content, key: 1)
+    @Test(arguments: ["1", "🦊", "fox"], ["mail", "2", "📧", "📫"])
+    func multiLineTest(fox: String, mail: String) {
+        let input = """
+        \(fox) ^\(quickFox)^
+        \(mail) ^You have %d new messages.^
+        """
 
-    #expect(parsed == expected)
-}
+        let fox = CST.parse(input, key: fox, variables: "leaped")
+        let mail = CST.parse(input, key: mail, variables: 5)
 
-@Test func variableTest() {
-    let parsed = CST.parse("1 ^\(quickFox)^", key: 1, variables: foxAction)
-
-    #expect(parsed == leapingFox)
-}
-
-@Test func emojiTest() {
-    let parsed = CST.parse("🦊 ^\(quickFox)^", key: "🦊", variables: foxAction)
-
-    #expect(parsed == leapingFox)
-}
-
-@Test func multiLineTest() {
-    let input = """
-    🦊 ^\(quickFox)^
-    newMail ^You have %d new messages.^
-    """
-
-    let fox = CST.parse(input, key: "🦊", variables: foxAction)
-    let mail = CST.parse(input, key: "newMail", variables: 5)
-
-    #expect(fox == leapingFox)
-    #expect(mail == "You have 5 new messages.")
+        #expect(fox == "The quick brown fox leaped over the lazy dog.")
+        #expect(mail == "You have 5 new messages.")
+    }
 }

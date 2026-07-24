@@ -150,12 +150,10 @@ enum CST {
             searchStartIndex = result.index(after: nextIndex)
             return
         }
-        
+
         let padCount = Int(paddingWidth) ?? 0
         // let paddedValue = padString(variables[variableIndex], toWidth: padCount)
         let finalEndIndex = result.index(after: endIndex)
-        
-       
     }
 
     private static func formatVariable(_ value: String, with paddingWidth: Int) -> String {
