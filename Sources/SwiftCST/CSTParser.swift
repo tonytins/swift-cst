@@ -2,27 +2,28 @@ import Foundation
 
 let missingMessage = "*** MISSING ***"
 
-enum PlaceholderKind {
+internal let caret: Character = "^"
+internal let lineEndings = ["\u{000A}", "\u{000D}",
+                                  "\u{000D}\u{000A}", "\u{2028}"]
+
+internal enum PlaceholderKind {
     case string
     case digit
     case paddingDigit(width: Int)
 }
 
-struct Placeholder {
+internal struct Placeholder {
     let kind: PlaceholderKind
     let range: Range<String.Index>
 }
 
-enum CST {
-    private static let caret: Character = "^"
-    private static let lineEndings = ["\u{000A}", "\u{000D}",
-                                      "\u{000D}\u{000A}", "\u{2028}"]
+struct CST {
 
     private static func scanAndBuild(_ content: String,
                                 key: some CustomStringConvertible,
                                 variables: any CustomStringConvertible...) -> String
     {
-        let entries = normalizeEntries(content)
+        let entries = normalizeEntries(in: content)
         let entry = findEntry(entries, key: String(describing: key))
         let convertAnyToString = variables.map { String(describing: $0) }
 
@@ -42,7 +43,7 @@ enum CST {
     {
         return scanAndBuild(content, key: key, variables: variables)
     }
-
+    
     private static func normalizeEntries(_ content: String) -> [String] {
         var normalized = content
 
@@ -223,7 +224,7 @@ enum CST {
 
 internal extension CST {
     
-    private static func usableLines(in content: String) -> [String] {
+    private static func normalizeEntries(in content: String) -> [String] {
         var normalized = content
         
         for lineEnding in lineEndings {
@@ -250,9 +251,22 @@ internal extension CST {
             of: placeholder
         ) {
             let width = paddingWidth(in: String(result[match.range]))
+            let substitute = padded(variables[variableIndex], toWidth: width)
+            
+            result.replaceSubrange(match.range, with: substitute)
+            variableIndex += 1
         }
         
         return result
+    }
+    
+    
+    private static func padded(_ value: String, toWidth width: Int) -> String {
+        guard width > value.count else {
+            return value
+        }
+        
+        return String(repeating: "0", count: width - value.count) + value
     }
     
     @available(macOS 13, *)

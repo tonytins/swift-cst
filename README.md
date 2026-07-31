@@ -8,7 +8,7 @@ Caret-Separated Text (or CST) is a key-value pair format represented by digits o
 
 ## Features
 
-- [ ]  TSO compatible
+- [ ]  TSO backwards compatibility
     - [ ] Keys above values
     - [x] Variables
 - [x] Multiline values
