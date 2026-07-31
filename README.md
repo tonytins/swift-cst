@@ -1,8 +1,8 @@
 # 🔠 SwiftCST
 
-SwiftCST is a library for asynchronously parsing Maxis' key-value pair format. It can be used in conjunction with your own custom frameworks, or the original `UIText` APIs.
+SwiftCST is a library for asynchronously parsing Maxis' key-value text format.
 
-## What is CST?
+## What Is CST?
 
 Caret-Separated Text (or CST) is a key-value pair format represented by digits or words as keys and the value as text enclosed between carets. (e.g. `<key> ^<value>^`) This was used by The Sims Online to make translation easier.
 

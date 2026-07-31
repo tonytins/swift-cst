@@ -2,11 +2,22 @@ import Foundation
 
 let missingMessage = "*** MISSING ***"
 
+enum PlaceholderKind {
+    case string
+    case digit
+    case paddingDigit(width: Int)
+}
+
+struct Placeholder {
+    let kind: PlaceholderKind
+    let range: Range<String.Index>
+}
+
 enum CST {
     private static let caret: Character = "^"
     private static let lineEndings = ["\u{000A}", "\u{000D}",
                                       "\u{000D}\u{000A}", "\u{2028}"]
-    
+
     private static func scanAndBuild(_ content: String,
                                 key: some CustomStringConvertible,
                                 variables: any CustomStringConvertible...) -> String
@@ -24,7 +35,7 @@ enum CST {
     {
         return scanAndBuild(content, key: key, variables: variables)
     }
-    
+
     static func parse(_ content: String,
                       key: some CustomStringConvertible,
                       variables: any CustomStringConvertible...) -> String
@@ -48,7 +59,7 @@ enum CST {
                     && !line.hasPrefix("/*") && !line.hasSuffix("*/")
             }
     }
-
+    
     private static func findEntry(_ entries: [String], key: String) -> String {
         for entry in entries {
             guard entry.hasPrefix(key) else { continue }
@@ -62,16 +73,16 @@ enum CST {
 
         return missingMessage
     }
-    
-    
+
+
     private static func substituteVariables(_ template: String,
                                             with variables: [String]) -> String
     {
         var result = template
         var variableIndex = 0
-        
+
         // On macOS 12 and earlier, we parse variables
-        // through a rather convoluted method.
+        // through a rather convoluted method
         if #available(macOS 13, *) {
             let regex = try! Regex("%(?:(\\d+))?d|%s")
 
@@ -149,7 +160,7 @@ enum CST {
 
         return Int(match.count)
     }
-    
+
     /// The clunky method of parsing padded digits for %02d formats on older systems.
     private static func performPaddedSubstitution(_ result: inout String, formatRange: Range<String.Index>, nextIndex: String.Index, variables: [String], variableIndex: inout Int, searchStartIndex: inout String.Index) {
         var endIndex = nextIndex
@@ -170,9 +181,9 @@ enum CST {
             variables[variableIndex],
             toWidth: padCount
         )
-        
+
         let finalEndIndex = result.index(after: endIndex)
-        
+
         result
             .replaceSubrange(
                 formatRange.lowerBound..<finalEndIndex,
@@ -207,4 +218,56 @@ enum CST {
 
         return String(repeating: "0", count: width - value.count) + value
     }
+}
+
+
+internal extension CST {
+    // macOS 12 and earlier
+    // ===============================================
+    static func nextPlaceholder(
+        in text: String,
+        from searchStart: String.Index
+    ) -> Placeholder?
+    {
+        guard let percentIndex = text.range(
+            of: "%",
+            range: searchStart..<text
+                .endIndex)?.lowerBound else {
+            return nil
+        }
+        
+        let flagIndex = text.index(after: percentIndex)
+        guard flagIndex < text.endIndex else { return nil }
+        let flagCharacter = text[flagIndex]
+        
+        switch flagCharacter {
+        case "d":
+            return Placeholder(
+                kind: .digit,
+                range: percentIndex..<text.index(after: flagIndex)
+            )
+        default:
+            return Placeholder(
+                kind: .string,
+                range: percentIndex..<text.index(after: flagIndex)
+            )
+        }
+        
+        guard flagCharacter.isLetter else {
+            return nextPlaceholder(in: text, from: text.index(after: flagIndex))
+        }
+        
+        return paddedDigitPlaceholder(
+            in: text,
+            percentIndex: percentIndex,
+            digitStart: flagIndex
+        )
+    }
+    
+    static func paddedDigitPlaceholder(in text: String,
+                                       percentIndex: String.Index,
+                                       digitStart: String.Index) -> Placeholder? {
+        return nil
+    }
+    // ===============================================
 }
