@@ -222,6 +222,53 @@ enum CST {
 
 
 internal extension CST {
+    
+    private static func usableLines(in content: String) -> [String] {
+        var normalized = content
+        
+        for lineEnding in lineEndings {
+            normalized = normalized.replacingOccurrences(of: lineEnding, with: "\n")
+        }
+        
+        return normalized
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map(String.init)
+            .filter(isComments)
+    }
+    
+    private static func isComments(_ line: String) -> Bool {
+        !line.hasPrefix("//") && !line.hasSuffix("#")
+    }
+    
+    @available(macOS 13, *)
+    static func substituteUsingRegex(_ variables: [String], into template: String) -> String {
+        let placeholder = /%(?:(\d+))?d|%s/
+        var result = template
+        var variableIndex = 0
+        
+        while variableIndex < variables.count, let match = result.firstMatch(
+            of: placeholder
+        ) {
+            let width = paddingWidth(in: String(result[match.range]))
+        }
+        
+        return result
+    }
+    
+    @available(macOS 13, *)
+    private static func paddingWidth(in placeholder: String) -> Int {
+        guard placeholder.contains("d") else {
+            return 0
+        }
+        
+        let digitsPattern = /%(\d+)d/
+        guard let match = placeholder.firstMatch(of: digitsPattern) else {
+            return 0
+        }
+        
+        return Int(match.output.1) ?? 0
+    }
+    
     // macOS 12 and earlier
     // ===============================================
     static func nextPlaceholder(
