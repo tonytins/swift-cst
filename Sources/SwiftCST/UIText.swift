@@ -30,11 +30,11 @@ struct UIText {
     func fileURL(forFile file: String) -> URL {
         let url = URL(fileURLWithPath: basePath)
         if #available(macOS 13.0, *) {
-            return url.appending(path: "translations")
+            return url.appending(path: "uitext")
                 .appending(path: "\(language).cst")
                 .appending(path: "\(file).cst")
         } else {
-            return url.appendingPathComponent("translations")
+            return url.appendingPathComponent("uitext")
                 .appendingPathComponent("\(language).cst")
                 .appendingPathComponent("\(file).cst")
         }

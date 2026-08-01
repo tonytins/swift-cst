@@ -5,17 +5,17 @@ import Testing
 @Suite("UIText")
 struct UITextTests {
     
-    func mockedPath(language: String = "english", id: String = "greetings") -> URL
+    func mockedPath(language: String = "english", file: String = "greetings") -> URL
     {
         let url = URL(fileURLWithPath: ".")
         if #available(macOS 13.0, *) {
-            return url.appending(path: "translations")
+            return url.appending(path: "uitext")
                 .appending(path: "\(language).cst")
-                .appending(path: "\(id).cst")
+                .appending(path: "\(file).cst")
         } else {
-            return url.appendingPathComponent("translations")
+            return url.appendingPathComponent("uitext")
                 .appendingPathComponent("\(language).cst")
-                .appendingPathComponent("\(id).cst")
+                .appendingPathComponent("\(file).cst")
         }
     }
     
