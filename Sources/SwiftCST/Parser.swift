@@ -162,7 +162,9 @@ struct CST {
         return Int(match.count)
     }
 
-    /// The clunky method of parsing padded digits for %02d formats on older systems.
+    // macOS 12 and earlier
+    // The clunky method of parsing padded digits for %02d formats on older systems.
+    // ===============================================================================
     private static func performPaddedSubstitution(_ result: inout String, formatRange: Range<String.Index>, nextIndex: String.Index, variables: [String], variableIndex: inout Int, searchStartIndex: inout String.Index) {
         var endIndex = nextIndex
         var paddingWidth = ""
@@ -219,6 +221,7 @@ struct CST {
 
         return String(repeating: "0", count: width - value.count) + value
     }
+    // ===============================================================================
 }
 
 
@@ -284,7 +287,8 @@ internal extension CST {
     }
     
     // macOS 12 and earlier
-    // ===============================================
+    // A lot less clunkier than first, but still a headache to write
+    // ==============================================================
     static func nextPlaceholder(
         in text: String,
         from searchStart: String.Index

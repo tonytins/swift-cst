@@ -5,7 +5,7 @@ import Testing
 @Suite("UIText")
 struct UITextTests {
     
-    func fixedURL(language: String = "english", id: String = "greetings") -> URL
+    func mockedPath(language: String = "english", id: String = "greetings") -> URL
     {
         let url = URL(fileURLWithPath: ".")
         if #available(macOS 13.0, *) {
@@ -20,7 +20,7 @@ struct UITextTests {
     }
     
     @Test func loadAndParse() async throws {
-        let url = fixedURL()
+        let url = mockedPath()
         let loader = InMemoryCST(files: [url: "1 ^Hello %s!^"])
         let text = UIText(loader: loader)
         
