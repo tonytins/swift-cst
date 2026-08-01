@@ -1,8 +1,9 @@
-
 import Foundation
+import FutureFoundations
 
 protocol CSTFileLoader {
     func loadCST(at url: URL) throws -> String
+    func fileNames(inDirectory url: URL) throws -> [String]
 }
 
 internal struct CSTFileManger: CSTFileLoader {
@@ -24,6 +25,15 @@ internal struct CSTFileManger: CSTFileLoader {
                 .unreadable(path: url.futurePath(), underlying: error)
         }
     }
+    
+    func fileNames(inDirectory url: URL) throws -> [String] {
+        do {
+            return try fileManager.contentsOfDirectory(atPath: url.futurePath())
+        } catch {
+            throw UITextError
+                .unreadable(path: url.futurePath(), underlying: error)
+        }
+    }
 }
 
 internal struct InMemoryCST: CSTFileLoader {
@@ -35,5 +45,48 @@ internal struct InMemoryCST: CSTFileLoader {
         }
         
         return contents
+    }
+    
+    func fileNames(inDirectory url: URL) throws -> [String] {
+        let directoryPath = url.futurePath()
+        
+        return files.keys
+            .filter {
+                $0.deletingLastPathComponent().futurePath() == directoryPath
+            }
+            .map {
+                $0.lastPathComponent
+            }
+        
+    }
+}
+
+struct UITextPath {
+    static let uitext = "uitext"
+    
+    static func directoryURL(basePath: String, language: String) -> URL {
+        let base = URL(fileURLWithPath: basePath)
+        
+        if #available(macOS 13, *) {
+            return base.appending(path: uitext)
+                .appending(path: "\(language).cst")
+        } else {
+            return base.appendingPathComponent(uitext)
+                .appendingPathComponent("\(language).cst")
+        }
+    }
+    
+    static func fileURL(basePath: String, language: String, file: String) -> URL {
+        let directory = directoryURL(basePath: basePath, language: language)
+        
+        if #available(macOS 13, *) {
+            return directory
+                .appending(path: uitext)
+                .appending(path: "\(file).cst")
+        } else {
+            return directory
+                .appendingPathExtension(uitext)
+                .appendingPathComponent("\(file).cst")
+        }
     }
 }

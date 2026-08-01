@@ -1,0 +1,15 @@
+{
+  "originHash" : "63aa2840c28f624abc34144300e4492968584f47095c28aa55feec65414a62d1",
+  "pins" : [
+    {
+      "identity" : "future-foundations",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tonytins/future-foundations",
+      "state" : {
+        "branch" : "main",
+        "revision" : "d43453e2047f972b1cb30994bb3a603be576a346"
+      }
+    }
+  ],
+  "version" : 3
+}
