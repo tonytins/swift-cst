@@ -19,7 +19,7 @@ internal struct Placeholder {
 
 struct CST {
 
-    private static func scanAndBuild(_ content: String,
+    internal static func scanAndBuild(_ content: String,
                                 key: some CustomStringConvertible,
                                 variables: any CustomStringConvertible...) -> String
     {

@@ -1,6 +1,7 @@
 @testable import SwiftCST
 import Testing
 
+@Suite("Parser Tests")
 struct ParserTests {
     // TODO: name these better
     let quickFox: String = "The quick brown fox %s over the lazy dog."
