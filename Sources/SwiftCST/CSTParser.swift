@@ -33,43 +33,10 @@ enum CST {
                                      key: some CustomStringConvertible,
                                      variables: any CustomStringConvertible...) -> String
     {
-        let entries = normalizeEntries(content)
-        let entry = findEntry(entries, key: String(describing: key))
+        let ledger = Ledger(content: content)
+        let entry = ledger.entries(forKey: String(describing: key))
         let stringVariables = variables.map { String(describing: $0) }
         
         return substitutor.substitute(entry, with: stringVariables)
     }
-
-
-    private static func normalizeEntries(_ content: String) -> [String] {
-        var normalized = content
-
-        for lineEnding in lineEndings {
-            normalized = normalized.replacingOccurrences(of: lineEnding, with: "\n")
-        }
-
-        return normalized
-            .split(separator: "\n", omittingEmptySubsequences: false)
-            .map { String($0) }
-            .filter {
-                line in
-                !line.hasPrefix("//") && !line.hasSuffix("#")
-                    && !line.hasPrefix("/*") && !line.hasSuffix("*/")
-            }
-    }
-
-    private static func findEntry(_ entries: [String], key: String) -> String {
-        for entry in entries {
-            guard entry.hasPrefix(key) else { continue }
-            guard let startIndex = entry.firstIndex(of: caret) else { continue }
-
-            let line = String(entry[startIndex...])
-            return line.trimmingCharacters(
-                in: CharacterSet(charactersIn: String(caret)),
-            )
-        }
-
-        return missingMessage
-    }
-    
 }
