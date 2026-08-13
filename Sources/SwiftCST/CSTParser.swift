@@ -3,15 +3,11 @@ import Foundation
 let missingMessage = "*** MISSING ***"
 
 enum CST {
-    private static let caret: Character = "^"
-    private static let lineEndings = ["\u{000A}", "\u{000D}",
-                                      "\u{000D}\u{000A}", "\u{2028}"]
-    
-    static var substitutor: VariableSubstituting {
+    static var substitutor: VariableInterpolating {
         if #available(macOS 13, *) {
-            RegexParser()
+            RegexInterpolating()
         } else {
-            LegacyParser()
+            LegacyInterpolating()
         }
     }
      

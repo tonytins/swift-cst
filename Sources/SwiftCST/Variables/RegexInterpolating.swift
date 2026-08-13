@@ -1,7 +1,7 @@
 import Foundation
 
 @available(macOS 13, *)
-struct RegexParser: VariableSubstituting {
+struct RegexInterpolating: VariableInterpolating {
     private let placeholderPattern = try! Regex("%(?:(\\d+))?d|%s")
     private let paddingPattern = try! Regex("%(\\d+)d")
     
