@@ -2,7 +2,7 @@ import Foundation
 
 let missingMessage = "*** MISSING ***"
 
-enum CST {
+public struct CST {
     static var substitutor: VariableInterpolating {
         if #available(macOS 13, *) {
             RegexInterpolating()
@@ -11,21 +11,7 @@ enum CST {
         }
     }
      
-    static func parse(_ content: String,
-                      key: some CustomStringConvertible,
-                      variables: any CustomStringConvertible...) async -> String
-    {
-        return scanAndBuild(content, key: key, variables: variables)
-    }
-    
-    static func parse(_ content: String,
-                      key: some CustomStringConvertible,
-                      variables: any CustomStringConvertible...) -> String
-    {
-        return scanAndBuild(content, key: key, variables: variables)
-    }
-    
-    private static func scanAndBuild(_ content: String,
+    static func scanAndBuild(_ content: String,
                                      key: some CustomStringConvertible,
                                      variables: any CustomStringConvertible...) -> String
     {
@@ -35,4 +21,25 @@ enum CST {
         
         return substitutor.substitute(entry, with: stringVariables)
     }
+}
+
+// MARK: - Public API
+
+public extension CST {
+    
+    static func parse(_ content: String,
+                      key: some CustomStringConvertible,
+                      variables: any CustomStringConvertible...) async -> String
+    {
+        return scanAndBuild(content, key: key, variables: variables)
+    }
+    
+    @available(*, deprecated, message: "Use async version.")
+    static func parse(_ content: String,
+                      key: some CustomStringConvertible,
+                      variables: any CustomStringConvertible...) -> String
+    {
+        return scanAndBuild(content, key: key, variables: variables)
+    }
+    
 }
