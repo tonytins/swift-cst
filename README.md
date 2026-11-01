@@ -8,19 +8,17 @@ Caret-Separated Text (or CST) is a key-value pair format represented by digits o
 
 ## Features
 
-- [ ]  TSO compatible
-    - [ ] Keys above values
+- [x] TSO compatible
+    - [x] Keys above values
     - [x] Variables
 - [x] Multiline values
 - [x] C-style comments
 - [x] Asynchronous support
-- [ ] UIText
+- [x] UIText
 
-### Limitations
+### Key and value layout
 
-In The Sims Online, it was possible to have keys on top of the value. At the moment, SwiftCST doesn't support this and excepts the key to be the same line as the caret.
-
-Although all versions of my CST parser are designed with as much fault tolerance as possible, _that_ was an oversight on my part.
+Values can be placed on the same line as their key or on the following line. Multiline values are supported in both layouts.
 
 ## Installation
 
@@ -51,6 +49,23 @@ let helloWorld = await CST.parse(content, key: 1, variables: "World")
 
 print(helloWorld)
 ```
+
+#### UIText
+
+`UIText` looks up a key in a language directory containing files named
+`_<id>_<name>.cst`. The package includes an English catalog. Other catalogs can
+be supplied by passing the directory that contains language directories, such
+as `english.dir`, as `basePath`.
+
+```swift
+let text = UIText(language: "english")
+let greeting = try await text.text(for: 154, key: 1)
+
+print(greeting)
+```
+
+Missing file IDs and keys return `*** MISSING ***`. Filesystem errors, such as
+a missing language directory, are thrown to the caller.
 
 ## Supported Versions
 

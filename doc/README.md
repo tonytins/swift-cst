@@ -53,19 +53,30 @@ let output = """
 print(output)
 ```
 
-<!--
-### In Production
+### UIText
 
-```csharp
-#r "nuget:CSTNet,2.0.103"
-using CSTNet;
+`UIText` reads a key from a language catalog file named
+`_<id>_<name>.cst`. The package includes an English catalog:
 
-var english = new UIText(); // UIText assumes English
-var swedish = new UIText("swedish");
-var engExample = english.GetText(152, 1); // english.dir/_154_miscstrings.cst
-var sweExample = swedish.GetText(152, 1); // swedish.dir/_154_miscstrings.cst
+```swift
+let english = UIText()
+let newMail = try await english.text(for: 101, key: "newMail", variables: 5)
 
-Console.WriteLine(engExample);
-Console.WriteLine(sweExample);
+print(newMail)
 ```
--->
+
+For another language, pass its directory name and the directory containing
+language catalogs:
+
+```swift
+import Foundation
+
+let swedish = UIText(
+  language: "swedish",
+  basePath: URL(fileURLWithPath: "/path/to/uitext")
+)
+let translated = try await swedish.text(for: 152, key: 1)
+```
+
+Missing file IDs and keys return `*** MISSING ***`. Filesystem errors are
+thrown to the caller.

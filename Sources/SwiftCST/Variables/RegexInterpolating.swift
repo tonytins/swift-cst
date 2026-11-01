@@ -2,38 +2,29 @@ import Foundation
 
 @available(macOS 13, *)
 struct RegexInterpolating: VariableInterpolating {
-  private let placeholderPattern = try! Regex("%(?:(\\d+))?d|%s")
-  private let paddingPattern = try! Regex("%(\\d+)d")
+  private let placeholderPattern = try! Regex("%(?:(\\d+))?([sd])")
 
   func substitute(_ template: String, with variables: [String]) -> String {
-    var result = template
+    var result = ""
+    var searchStartIndex = template.startIndex
     var variableIndex = 0
 
-    while variableIndex < variables.count {
-      guard let match = result.firstMatch(of: paddingPattern) else {
+    for match in template.matches(of: placeholderPattern) {
+      guard variableIndex < variables.count else {
         break
       }
 
-      let matchedText = String(result[match.range])
-      let width = paddingWidth(in: matchedText)
-      let variableSubstitution = variables[variableIndex].padded(
-        toWidth: width
-      )
+      result.append(contentsOf: template[searchStartIndex..<match.range.lowerBound])
+      let width = Int(match.output[1].substring ?? "") ?? 0
+      let format = match.output[2].substring
+      let variable = variables[variableIndex]
+      result.append(contentsOf: format == "d" ? variable.padded(toWidth: width) : variable)
 
-      result.replaceSubrange(match.range, with: variableSubstitution)
+      searchStartIndex = match.range.upperBound
       variableIndex += 1
     }
 
+    result.append(contentsOf: template[searchStartIndex...])
     return result
-  }
-
-  func paddingWidth(in matchedText: String) -> Int {
-    guard
-      let match = matchedText.firstMatch(
-        of: paddingPattern
-      ), let digits = match.output[1].substring
-    else { return 0 }
-
-    return Int(digits) ?? 0
   }
 }

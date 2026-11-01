@@ -13,6 +13,10 @@ struct LegacyInterpolating: VariableInterpolating {
       }
 
       let formatIndex = result.index(after: percentRange.lowerBound)
+      guard formatIndex < result.endIndex else {
+        break
+      }
+
       let formatChar = result[formatIndex]
 
       switch formatChar {

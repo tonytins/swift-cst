@@ -3,37 +3,52 @@ import Testing
 @testable import SwiftCST
 
 struct ParserTests {
-  // TODO: name these better
   let quickFox: String = "The quick brown fox %s over the lazy dog."
 
-  func quickFoxAction(do action: String) -> String {
-    return "The quick brown fox \(action) over the lazy dog."
-  }
-
-  @Test(arguments: ["1", "🦊", "fox"], ["jumped", "leaped", "flew"])
-  func singleLineTest(keys: String, action: String) async {
+  @Test(arguments: ["1", "🦊", "fox"])
+  func singleLineTest(key: String) async {
     let parsed = await CST.parse(
-      "\(keys) ^\(quickFox)^",
-      key: keys,
-      variables: action,
+      "\(key) ^\(quickFox)^",
+      key: key,
+      variables: "jumped",
     )
 
-    #expect(parsed == quickFoxAction(do: action))
+    #expect(parsed == "The quick brown fox jumped over the lazy dog.")
   }
 
-  @Test(
-    arguments: ["1", "🦊", "fox"], ["mail", "2", "📧", "📫"]
-  )
-  func multiLineTest(fox: String, action: String, mail: String) async {
+  @Test
+  func multilineValuesAndKeysOnSeparateLines() async {
     let input = """
-      \(fox) ^\(quickFox)^
-      \(mail) ^You have %d new messages.^
+      fox
+      ^The quick brown fox %s
+      over the lazy dog.^
+      mail
+      ^You have %02d new messages.^
       """
 
-    let fox = await CST.parse(input, key: fox, variables: action)
-    let mail = await CST.parse(input, key: mail, variables: 5)
+    let fox = await CST.parse(input, key: "fox", variables: "jumped")
+    let mail = await CST.parse(input, key: "mail", variables: 5)
 
-    #expect(fox == quickFoxAction(do: action))
-    #expect(mail == "You have 5 new messages.")
+    #expect(fox == "The quick brown fox jumped\nover the lazy dog.")
+    #expect(mail == "You have 05 new messages.")
+  }
+
+  @Test
+  func multilineValueWithKeyOnSameLine() async {
+    let input = "fox ^The quick brown fox\njumps over the lazy dog.^"
+    let parsed = await CST.parse(input, key: "fox")
+
+    #expect(parsed == "The quick brown fox\njumps over the lazy dog.")
+  }
+
+  @Test
+  func interpolationPreservesUnmatchedPlaceholders() async {
+    let parsed = await CST.parse(
+      "mail ^%s %d %03d %1^",
+      key: "mail",
+      variables: "Messages", 7, 4
+    )
+
+    #expect(parsed == "Messages 7 004 %1")
   }
 }
