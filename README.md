@@ -1,6 +1,6 @@
 # 🔠 SwiftCST
 
-SwiftCST is a library for asynchronously parsing Maxis' key-value pair format. It can be used in conjunction with your own custom frameworks, or the original `UIText` APIs.
+SwiftCST is a library for parsing Maxis' key-value pair format. It can be used with custom frameworks or the original `UIText` APIs.
 
 ## What is CST?
 
@@ -45,7 +45,7 @@ Or in Xcode: File -> Add Package Dependencies, then paste the repo URL.
 
 ```swift
 let content = "1 ^Hello %s!^" // %s represents a string variable
-let helloWorld = await CST.parse(content, key: 1, variables: "World")
+let helloWorld = CST.parse(content, key: 1, variables: "World")
 
 print(helloWorld)
 ```
@@ -59,13 +59,16 @@ application bundle's resources, containing language directories such as
 
 ```swift
 let text = UIText(language: "english")
-let greeting = try await text.text(for: 154, key: 1)
+let greeting = try text.text(for: 154, key: 1)
 
 print(greeting)
 ```
 
 Missing file IDs and keys return `*** MISSING ***`. Filesystem errors, such as
 a missing language directory, are thrown to the caller.
+
+Parsing and file lookup are synchronous. Async overloads remain temporarily
+available for source compatibility and are deprecated.
 
 ## Supported Versions
 

@@ -42,13 +42,43 @@ public struct UIText: Sendable {
     for id: Int,
     key: some CustomStringConvertible,
     variables: any CustomStringConvertible...
+  ) throws -> String {
+    try loadText(for: id, key: key, variables: variables)
+  }
+
+  /// Asynchronously named compatibility overload for localized text lookup.
+  ///
+  /// File discovery and reading are synchronous. Use the synchronous overload
+  /// instead.
+  ///
+  /// - Parameters:
+  ///   - id: The numeric identifier in the CST filename.
+  ///   - key: The entry key in the file.
+  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
+  ///     placeholders in the entry.
+  /// - Throws: An error if the language directory or selected file cannot be
+  ///   read.
+  /// - Returns: The localized entry, or the missing-message marker.
+  @available(*, deprecated, message: "UIText file lookup is synchronous; use the synchronous overload.")
+  public func text(
+    for id: Int,
+    key: some CustomStringConvertible,
+    variables: any CustomStringConvertible...
   ) async throws -> String {
+    try loadText(for: id, key: key, variables: variables)
+  }
+
+  private func loadText(
+    for id: Int,
+    key: some CustomStringConvertible,
+    variables: [any CustomStringConvertible]
+  ) throws -> String {
     guard let fileURL = try fileURL(for: id) else {
       return missingMessage
     }
 
     let content = try String(contentsOf: fileURL, encoding: .utf8)
-    return await CST.parse(content, key: key, variables: variables)
+    return CST.parse(content, key: key, variables: variables)
   }
 
   private func fileURL(for id: Int) throws -> URL? {

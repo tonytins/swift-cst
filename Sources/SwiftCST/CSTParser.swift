@@ -19,16 +19,14 @@ public struct CST {
 // MARK: - Public API
 
 extension CST {
-
-  public static func parse(
-    _ content: String,
-    key: some CustomStringConvertible,
-    variables: any CustomStringConvertible...
-  ) async -> String {
-    parseContent(content, key: key, variables: variables)
-  }
-
-  @available(*, deprecated, message: "Use async version.")
+  /// Parses the value for `key` and substitutes the supplied variables.
+  ///
+  /// - Parameters:
+  ///   - content: The CST document to parse.
+  ///   - key: The entry key to find.
+  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
+  ///     placeholders.
+  /// - Returns: The parsed value, or the missing-message marker.
   public static func parse(
     _ content: String,
     key: some CustomStringConvertible,
@@ -37,4 +35,23 @@ extension CST {
     parseContent(content, key: key, variables: variables)
   }
 
+  /// Parses the value for `key` and substitutes the supplied variables.
+  ///
+  /// This operation is synchronous. This overload remains for source
+  /// compatibility; use the synchronous overload instead.
+  ///
+  /// - Parameters:
+  ///   - content: The CST document to parse.
+  ///   - key: The entry key to find.
+  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
+  ///     placeholders.
+  /// - Returns: The parsed value, or the missing-message marker.
+  @available(*, deprecated, message: "Parsing is synchronous; use the synchronous overload.")
+  public static func parse(
+    _ content: String,
+    key: some CustomStringConvertible,
+    variables: any CustomStringConvertible...
+  ) async -> String {
+    parseContent(content, key: key, variables: variables)
+  }
 }

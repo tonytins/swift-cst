@@ -5,13 +5,13 @@ import Testing
 
 struct UITextTests {
   @Test
-  func readsEnglishCatalogFixture() async throws {
+  func readsEnglishCatalogFixture() throws {
     let resourceURL = try #require(Bundle.module.resourceURL)
     let catalog = UIText(
       basePath: resourceURL.appendingPathComponent("uitext", isDirectory: true)
     )
-    let message = try await catalog.text(for: 101, key: "newMail", variables: 5)
-    let multiline = try await catalog.text(for: 102, key: "Multiline")
+    let message = try catalog.text(for: 101, key: "newMail", variables: 5)
+    let multiline = try catalog.text(for: 102, key: "Multiline")
 
     #expect(message == "You have 5 new messages.")
     #expect(multiline.contains("\n\nQuisque vehicula"))
@@ -19,7 +19,7 @@ struct UITextTests {
   }
 
   @Test
-  func readsLocalizedTextByFileIDAndKey() async throws {
+  func readsLocalizedTextByFileIDAndKey() throws {
     let basePath = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let languageDirectory = basePath.appendingPathComponent("english.dir", isDirectory: true)
@@ -36,15 +36,15 @@ struct UITextTests {
     )
 
     let catalog = UIText(basePath: basePath)
-    let greeting = try await catalog.text(for: 101, key: "welcome", variables: "World")
-    let missing = try await catalog.text(for: 102, key: "welcome")
+    let greeting = try catalog.text(for: 101, key: "welcome", variables: "World")
+    let missing = try catalog.text(for: 102, key: "welcome")
 
     #expect(greeting == "Hello World!")
     #expect(missing == "*** MISSING ***")
   }
 
   @Test
-  func readsIntegerKeys() async throws {
+  func readsIntegerKeys() throws {
     let basePath = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString, isDirectory: true)
     let languageDirectory = basePath.appendingPathComponent("english.dir", isDirectory: true)
@@ -61,8 +61,19 @@ struct UITextTests {
     )
 
     let catalog = UIText(basePath: basePath)
-    let entry = try await catalog.text(for: 101, key: 1)
+    let entry = try catalog.text(for: 101, key: 1)
 
     #expect(entry == "First entry.")
+  }
+
+  @Test
+  func asyncLookupCompatibilityOverload() async throws {
+    let resourceURL = try #require(Bundle.module.resourceURL)
+    let catalog = UIText(
+      basePath: resourceURL.appendingPathComponent("uitext", isDirectory: true)
+    )
+    let message = try await catalog.text(for: 101, key: "newMail", variables: 5)
+
+    #expect(message == "You have 5 new messages.")
   }
 }

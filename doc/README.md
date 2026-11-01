@@ -1,6 +1,6 @@
 # SwiftCST
 
-SwiftCST is a library for asynchronously parsing Maxis' key-value pair format.
+SwiftCST is a library for parsing Maxis' key-value pair format.
 
 ## What is CST?
 
@@ -14,7 +14,7 @@ If you want to create your own framework based on SwiftCST, you can use the `CST
 
 ```swift
 let quickFox = "1 ^The quick brown fox jumps over the lazy dog.^"
-let cst = await CST.parse(content, key: 1)
+let cst = CST.parse(content, key: 1)
 
 print(cst)
 ```
@@ -25,7 +25,7 @@ You may need to parse one or more variables.
 
 ```swift
 let quickFox = "1 ^The quick brown fox %s over the lazy dog.^" // %s represents a string variable
-let cst = await CST.parse(quickFox, key: 1, variables: "leaps")
+let cst = CST.parse(quickFox, key: 1, variables: "leaps")
 
 
 print(cst)
@@ -42,8 +42,8 @@ let input = """
 mail ^You have %d new messages^
 """
 
-let quickFox = await CST.parse(input, key: "🦊", variables: "leaps")
-let mail = await CST.parse(input, key: "mail", variables: 5)
+let quickFox = CST.parse(input, key: "🦊", variables: "leaps")
+let mail = CST.parse(input, key: "mail", variables: 5)
 
 let output = """
 \(quickFox)
@@ -61,7 +61,7 @@ directory, which contains language directories such as `english.dir`:
 
 ```swift
 let english = UIText(language: "english")
-let newMail = try await english.text(for: 101, key: "newMail", variables: 5)
+let newMail = try english.text(for: 101, key: "newMail", variables: 5)
 
 print(newMail)
 ```
@@ -76,8 +76,11 @@ let swedish = UIText(
   language: "swedish",
   basePath: URL(fileURLWithPath: "/path/to/uitext")
 )
-let translated = try await swedish.text(for: 152, key: 1)
+let translated = try swedish.text(for: 152, key: 1)
 ```
 
 Missing file IDs and keys return `*** MISSING ***`. Filesystem errors are
 thrown to the caller.
+
+Parsing and file lookup are synchronous. Async overloads remain temporarily
+available for source compatibility and are deprecated.
