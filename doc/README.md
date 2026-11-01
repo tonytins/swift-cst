@@ -61,8 +61,8 @@ entries.
 ### UIText
 
 `UIText` reads a key from a language catalog file named
-`_<id>_<name>.cst`. By default it searches the app bundle's `uitext` resources
-directory, which contains language directories such as `english.dir`:
+`_<id>_<name>.cst`. By default it searches for `uitext` beside the running
+executable first, then falls back to the app bundle's `uitext` resources:
 
 ```swift
 let english = UIText(language: "english")

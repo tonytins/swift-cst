@@ -61,9 +61,10 @@ print(helloWorld)
 #### UIText
 
 `UIText` looks up a key in a language directory containing files named
-`_<id>_<name>.cst`. By default it searches for an `uitext` directory in the
-application bundle's resources, containing language directories such as
-`english.dir`. A different directory can be provided with `basePath`.
+`_<id>_<name>.cst`. By default it first searches an `uitext` directory beside
+the running executable, then falls back to the app bundle's `uitext` resources.
+A different first-choice directory can be provided with `basePath`; the bundle
+lookup remains the fallback.
 
 ```swift
 let text = UIText(language: "english")

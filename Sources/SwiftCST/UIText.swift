@@ -13,16 +13,34 @@ public struct UIText: Sendable {
   /// - Parameters:
   ///   - language: The language directory name without the `.dir` suffix.
   ///   - basePath: The directory containing language directories. By default,
-  ///     this is an `uitext` directory in the application bundle's resources.
+  ///     this is an `uitext` directory beside the running executable. The app
+  ///     bundle's `uitext` resources are searched afterward.
   public init(
     language: String = "english",
     basePath: URL? = nil
   ) {
-    self.language = language
-    self.basePath =
-      basePath
-      ?? (Bundle.main.resourceURL ?? Bundle.main.bundleURL)
+    let executableDirectory =
+      Bundle.main.executableURL?.deletingLastPathComponent()
+      ?? URL(
+        fileURLWithPath: FileManager.default.currentDirectoryPath,
+        isDirectory: true
+      )
+
+    self.init(
+      language: language,
+      basePath: basePath
+        ?? executableDirectory.appendingPathComponent("uitext", isDirectory: true),
+      fallbackPath: (Bundle.main.resourceURL ?? Bundle.main.bundleURL)
         .appendingPathComponent("uitext", isDirectory: true)
+    )
+  }
+
+  let fallbackPath: URL
+
+  init(language: String, basePath: URL, fallbackPath: URL) {
+    self.language = language
+    self.basePath = basePath
+    self.fallbackPath = fallbackPath
   }
 
   /// Returns a localized string from the CST file whose name contains `id`.
@@ -82,31 +100,42 @@ public struct UIText: Sendable {
   }
 
   private func fileURL(for id: Int) throws -> URL? {
-    let languageDirectory = basePath.appendingPathComponent(
-      "\(language).dir",
-      isDirectory: true
-    )
-    let files = try FileManager.default.contentsOfDirectory(
-      at: languageDirectory,
-      includingPropertiesForKeys: nil,
-      options: [.skipsHiddenFiles]
-    )
-
-    return files
-      .sorted { $0.lastPathComponent < $1.lastPathComponent }
-      .first { fileURL in
-        guard fileURL.pathExtension.caseInsensitiveCompare("cst") == .orderedSame else {
-          return false
-        }
-
-        let filename = fileURL.deletingPathExtension().lastPathComponent
-        guard filename.first == "_",
-          let idEnd = filename.dropFirst().firstIndex(of: "_")
-        else {
-          return false
-        }
-
-        return filename[filename.index(after: filename.startIndex)..<idEnd] == String(id)
+    for searchPath in [basePath, fallbackPath] {
+      let languageDirectory = searchPath.appendingPathComponent(
+        "\(language).dir",
+        isDirectory: true
+      )
+      guard FileManager.default.fileExists(atPath: languageDirectory.path) else {
+        continue
       }
+
+      let files = try FileManager.default.contentsOfDirectory(
+        at: languageDirectory,
+        includingPropertiesForKeys: nil,
+        options: [.skipsHiddenFiles]
+      )
+
+      if let fileURL = files
+        .sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
+        .first(where: { fileURL in
+          guard fileURL.pathExtension.caseInsensitiveCompare("cst") == .orderedSame else {
+            return false
+          }
+
+          let filename = fileURL.deletingPathExtension().lastPathComponent
+          guard filename.first == "_",
+            let idEnd = filename.dropFirst().firstIndex(of: "_")
+          else {
+            return false
+          }
+
+          return filename[filename.index(after: filename.startIndex)..<idEnd] == String(id)
+        })
+      {
+        return fileURL
+      }
+    }
+
+    return nil
   }
 }

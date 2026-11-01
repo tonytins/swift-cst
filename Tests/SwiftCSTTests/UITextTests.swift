@@ -5,6 +5,19 @@ import Testing
 
 struct UITextTests {
   @Test
+  func defaultsToExecutableAdjacentCatalogDirectory() {
+    let executableDirectory =
+      Bundle.main.executableURL?.deletingLastPathComponent()
+      ?? URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+    let catalog = UIText()
+
+    #expect(
+      catalog.basePath
+        == executableDirectory.appendingPathComponent("uitext", isDirectory: true)
+    )
+  }
+
+  @Test
   func readsEnglishCatalogFixture() throws {
     let resourceURL = try #require(Bundle.module.resourceURL)
     let catalog = UIText(
@@ -41,6 +54,56 @@ struct UITextTests {
 
     #expect(greeting == "Hello World!")
     #expect(missing == "*** MISSING ***")
+  }
+
+  @Test
+  func fallsBackToBundleResourcesWhenExternalCatalogIsMissing() throws {
+    let resourceURL = try #require(Bundle.module.resourceURL)
+    let basePath = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let languageDirectory = basePath.appendingPathComponent("english.dir", isDirectory: true)
+    try FileManager.default.createDirectory(
+      at: languageDirectory,
+      withIntermediateDirectories: true
+    )
+    defer { try? FileManager.default.removeItem(at: basePath) }
+
+    let catalog = UIText(
+      language: "english",
+      basePath: basePath,
+      fallbackPath: resourceURL.appendingPathComponent("uitext", isDirectory: true)
+    )
+    let message = try catalog.text(for: 101, key: "newMail", variables: 5)
+
+    #expect(message == "You have 5 new messages.")
+  }
+
+  @Test
+  func prefersExternalCatalogOverBundleResources() throws {
+    let resourceURL = try #require(Bundle.module.resourceURL)
+    let basePath = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let languageDirectory = basePath.appendingPathComponent("english.dir", isDirectory: true)
+    try FileManager.default.createDirectory(
+      at: languageDirectory,
+      withIntermediateDirectories: true
+    )
+    defer { try? FileManager.default.removeItem(at: basePath) }
+
+    try "newMail ^External catalog.^".write(
+      to: languageDirectory.appendingPathComponent("_101_override.cst"),
+      atomically: true,
+      encoding: .utf8
+    )
+
+    let catalog = UIText(
+      language: "english",
+      basePath: basePath,
+      fallbackPath: resourceURL.appendingPathComponent("uitext", isDirectory: true)
+    )
+    let message = try catalog.text(for: 101, key: "newMail")
+
+    #expect(message == "External catalog.")
   }
 
   @Test
