@@ -3,24 +3,16 @@ import Foundation
 let missingMessage = "*** MISSING ***"
 
 public struct CST {
-  static var substitutor: VariableInterpolating {
-    if #available(macOS 13, *) {
-      RegexInterpolating()
-    } else {
-      LegacyInterpolating()
-    }
-  }
-
-  static func scanAndBuild(
+  private static func parseContent(
     _ content: String,
     key: some CustomStringConvertible,
-    variables: any CustomStringConvertible...
+    variables: [any CustomStringConvertible]
   ) -> String {
     let ledger = Ledger(content: content)
     let entry = ledger.entries(forKey: String(describing: key))
     let stringVariables = variables.map { String(describing: $0) }
 
-    return substitutor.substitute(entry, with: stringVariables)
+    return VariableInterpolator().substitute(entry, with: stringVariables)
   }
 }
 
@@ -33,7 +25,7 @@ extension CST {
     key: some CustomStringConvertible,
     variables: any CustomStringConvertible...
   ) async -> String {
-    return scanAndBuild(content, key: key, variables: variables)
+    parseContent(content, key: key, variables: variables)
   }
 
   @available(*, deprecated, message: "Use async version.")
@@ -42,7 +34,7 @@ extension CST {
     key: some CustomStringConvertible,
     variables: any CustomStringConvertible...
   ) -> String {
-    return scanAndBuild(content, key: key, variables: variables)
+    parseContent(content, key: key, variables: variables)
   }
 
 }

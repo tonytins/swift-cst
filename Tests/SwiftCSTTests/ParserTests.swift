@@ -51,4 +51,18 @@ struct ParserTests {
 
     #expect(parsed == "Messages 7 004 %1")
   }
+
+  @Test
+  func interpolationPreservesUnknownAndIncompletePlaceholders() async {
+    let parsed = await CST.parse("note ^%q %s %^", key: "note")
+
+    #expect(parsed == "%q %s %")
+  }
+
+  @Test
+  func interpolationDoesNotRescanInsertedVariables() async {
+    let parsed = await CST.parse("note ^%s^", key: "note", variables: "%d")
+
+    #expect(parsed == "%d")
+  }
 }

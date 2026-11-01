@@ -56,10 +56,11 @@ print(output)
 ### UIText
 
 `UIText` reads a key from a language catalog file named
-`_<id>_<name>.cst`. The package includes an English catalog:
+`_<id>_<name>.cst`. By default it searches the app bundle's `uitext` resources
+directory, which contains language directories such as `english.dir`:
 
 ```swift
-let english = UIText()
+let english = UIText(language: "english")
 let newMail = try await english.text(for: 101, key: "newMail", variables: 5)
 
 print(newMail)

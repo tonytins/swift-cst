@@ -5,8 +5,11 @@ import Testing
 
 struct UITextTests {
   @Test
-  func readsBundledEnglishCatalogByDefault() async throws {
-    let catalog = UIText()
+  func readsEnglishCatalogFixture() async throws {
+    let resourceURL = try #require(Bundle.module.resourceURL)
+    let catalog = UIText(
+      basePath: resourceURL.appendingPathComponent("uitext", isDirectory: true)
+    )
     let message = try await catalog.text(for: 101, key: "newMail", variables: 5)
     let multiline = try await catalog.text(for: 102, key: "Multiline")
 

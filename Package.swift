@@ -17,13 +17,13 @@ let package = Package(
     // Targets can depend on other targets in this package and products from dependencies.
     .target(
       name: "SwiftCST",
-      resources: [
-        .copy("Resources/uitext"),
-      ],
     ),
     .testTarget(
       name: "SwiftCSTTests",
       dependencies: ["SwiftCST"],
+      resources: [
+        .copy("Resources/uitext"),
+      ],
     ),
   ],
   swiftLanguageModes: [.v6],

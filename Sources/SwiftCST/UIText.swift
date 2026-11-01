@@ -13,7 +13,7 @@ public struct UIText: Sendable {
   /// - Parameters:
   ///   - language: The language directory name without the `.dir` suffix.
   ///   - basePath: The directory containing language directories. By default,
-  ///     this is the package's bundled `uitext` directory.
+  ///     this is an `uitext` directory in the application bundle's resources.
   public init(
     language: String = "english",
     basePath: URL? = nil
@@ -21,7 +21,7 @@ public struct UIText: Sendable {
     self.language = language
     self.basePath =
       basePath
-      ?? (Bundle.module.resourceURL ?? Bundle.main.bundleURL)
+      ?? (Bundle.main.resourceURL ?? Bundle.main.bundleURL)
         .appendingPathComponent("uitext", isDirectory: true)
   }
 
