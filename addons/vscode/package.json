@@ -1,0 +1,35 @@
+{
+  "name": "cst-language-support",
+  "displayName": "CST Language Support",
+  "description": "Syntax highlighting for Caret-Separated Text (CST) files",
+  "version": "0.1.0",
+  "publisher": "tonytins",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "cst",
+        "aliases": [
+          "CST",
+          "Caret-Separated Text"
+        ],
+        "extensions": [
+          ".cst"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cst",
+        "scopeName": "source.cst",
+        "path": "./syntaxes/cst.tmLanguage.json"
+      }
+    ]
+  }
+}

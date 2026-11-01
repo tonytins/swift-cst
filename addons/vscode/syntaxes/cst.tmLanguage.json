@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "CST",
+  "scopeName": "source.cst",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#key"
+    },
+    {
+      "include": "#value"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.cst",
+          "match": "^[ \\t]*//.*$"
+        },
+        {
+          "name": "comment.line.number-sign.cst",
+          "match": "^[ \\t]*#.*$"
+        },
+        {
+          "name": "comment.block.cst",
+          "begin": "^[ \\t]*/\\*",
+          "end": "\\*/.*$"
+        }
+      ]
+    },
+    "key": {
+      "match": "^[ \\t]*([^ \\t^]+)(?=[ \\t]*(?:\\^|$))",
+      "captures": {
+        "1": {
+          "name": "entity.name.tag.cst"
+        }
+      }
+    },
+    "value": {
+      "name": "string.quoted.other.cst",
+      "begin": "\\^",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.cst"
+        }
+      },
+      "end": "\\^",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.cst"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comments"
+        },
+        {
+          "name": "constant.other.placeholder.cst",
+          "match": "%[0-9]*[sd]"
+        }
+      ]
+    }
+  }
+}

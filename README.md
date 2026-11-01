@@ -15,6 +15,10 @@ Caret-Separated Text (or CST) is a key-value pair format represented by digits o
 - [x] C-style comments
 - [x] UIText
 
+## Editor Support
+
+Basic VS Code syntax highlighting is available in [addons/vscode](addons/vscode/README.md).
+
 ### Key and value layout
 
 Values can be placed on the same line as their key or on the following line. Multiline values are supported in both layouts.
