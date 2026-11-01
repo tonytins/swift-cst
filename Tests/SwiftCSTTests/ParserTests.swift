@@ -42,6 +42,61 @@ struct ParserTests {
   }
 
   @Test
+  func ignoresLineAndBlockComments() {
+    let input = """
+      // whole-line comment
+      # another supported comment
+      /*
+      ignored ^block contents^
+      */
+      message ^visible^
+      """
+    let parsed = CST.parse(input, key: "message")
+
+    #expect(parsed == "visible")
+  }
+
+  @Test
+  func ignoresCommentLinesInsideMultilineValues() {
+    let input = """
+      message ^first line
+      // ignored line
+      second line^
+      """
+    let parsed = CST.parse(input, key: "message")
+
+    #expect(parsed == "first line\nsecond line")
+  }
+
+  @Test
+  func unterminatedValueDoesNotConsumeFollowingEntry() {
+    let sameLineEntry = """
+      broken ^unfinished value
+      next ^separate value^
+      """
+    let separateLineEntry = """
+      broken ^unfinished value
+      next
+      ^separate value^
+      """
+
+    #expect(CST.parse(sameLineEntry, key: "broken") == "*** MISSING ***")
+    #expect(CST.parse(sameLineEntry, key: "next") == "separate value")
+    #expect(CST.parse(separateLineEntry, key: "broken") == "*** MISSING ***")
+    #expect(CST.parse(separateLineEntry, key: "next") == "separate value")
+  }
+
+  @Test
+  func keyMustEndAtAKeyBoundary() {
+    let input = """
+      foxes ^not the requested entry^
+      fox ^the requested entry^
+      """
+
+    #expect(CST.parse(input, key: "fox") == "the requested entry")
+  }
+
+  @Test
   func interpolationPreservesUnmatchedPlaceholders() {
     let parsed = CST.parse(
       "mail ^%s %d %03d %1^",

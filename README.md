@@ -13,12 +13,20 @@ Caret-Separated Text (or CST) is a key-value pair format represented by digits o
     - [x] Variables
 - [x] Multiline values
 - [x] C-style comments
-- [x] Asynchronous support
 - [x] UIText
 
 ### Key and value layout
 
 Values can be placed on the same line as their key or on the following line. Multiline values are supported in both layouts.
+
+### Comments and malformed values
+
+Whole-line `//` and `#` comments are ignored. Block comments beginning with
+`/*` are ignored through the line containing `*/`. These comment lines are also
+ignored inside multiline values.
+
+An unterminated value is treated as missing if another entry begins before its
+closing caret. This prevents a malformed entry from consuming later entries.
 
 ## Installation
 

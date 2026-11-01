@@ -10,13 +10,40 @@ struct Ledger {
       .replacingOccurrences(of: "\r\n", with: "\n")
       .replacingOccurrences(of: "\r", with: "\n")
       .replacingOccurrences(of: "\u{2028}", with: "\n")
-    self.lines = normalized.components(separatedBy: "\n")
+    self.lines = Self.removingComments(from: normalized.components(separatedBy: "\n"))
   }
 
-  private func isComment(_ line: String) -> Bool {
-    let line = line.trimmingCharacters(in: .whitespaces)
-    return line.hasPrefix("//") || line.hasPrefix("#") || line.hasPrefix("/*")
-      || line.hasSuffix("*/")
+  private static func removingComments(from lines: [String]) -> [String] {
+    var isInsideBlockComment = false
+    var contentLines: [String] = []
+
+    for line in lines {
+      let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+
+      if isInsideBlockComment {
+        if trimmedLine.contains("*/") {
+          isInsideBlockComment = false
+        }
+        continue
+      }
+
+      if trimmedLine.hasPrefix("//") || trimmedLine.hasPrefix("#") {
+        continue
+      }
+
+      if trimmedLine.hasPrefix("/*") {
+        isInsideBlockComment = !trimmedLine.contains("*/")
+        continue
+      }
+
+      if trimmedLine.hasSuffix("*/") {
+        continue
+      }
+
+      contentLines.append(line)
+    }
+
+    return contentLines
   }
 
   private func keyEnds(at index: String.Index, in line: String) -> Bool {
@@ -25,6 +52,31 @@ struct Ledger {
     }
 
     return line[index].isWhitespace || line[index] == Self.caret
+  }
+
+  private func isEntryStart(at lineIndex: Int) -> Bool {
+    let line = lines[lineIndex]
+    let content = line.drop(while: \.isWhitespace)
+
+    if let caretIndex = content.firstIndex(of: Self.caret) {
+      let rawKey = content[..<caretIndex]
+      let key = rawKey.trimmingCharacters(in: .whitespaces)
+      guard !key.isEmpty, !key.contains(where: \.isWhitespace) else {
+        return false
+      }
+
+      let valueStart = content.index(after: caretIndex)
+      return rawKey.last?.isWhitespace == true
+        || (valueStart < content.endIndex && content[valueStart] != Self.caret)
+    }
+
+    guard !content.isEmpty, !content.contains(where: \.isWhitespace),
+      lineIndex + 1 < lines.count
+    else {
+      return false
+    }
+
+    return lines[lineIndex + 1].drop(while: \.isWhitespace).first == Self.caret
   }
 
   private func value(
@@ -37,7 +89,12 @@ struct Ledger {
       return String(value[..<end])
     }
 
-    for line in lines.dropFirst(lineIndex + 1) {
+    for nextLineIndex in (lineIndex + 1)..<lines.count {
+      if isEntryStart(at: nextLineIndex) {
+        return nil
+      }
+
+      let line = lines[nextLineIndex]
       value.append("\n")
 
       if let end = line.firstIndex(of: Self.caret) {
@@ -53,7 +110,7 @@ struct Ledger {
 
   func entries(forKey key: String) -> String {
     for (lineIndex, line) in lines.enumerated() {
-      guard !isComment(line), line.hasPrefix(key) else {
+      guard line.hasPrefix(key) else {
         continue
       }
 

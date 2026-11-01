@@ -53,6 +53,11 @@ let output = """
 print(output)
 ```
 
+Whole-line `//` and `#` comments are ignored. Block comments beginning with
+`/*` are ignored through the line containing `*/`. These comment lines are also
+ignored inside multiline values. An unterminated value does not consume later
+entries.
+
 ### UIText
 
 `UIText` reads a key from a language catalog file named
