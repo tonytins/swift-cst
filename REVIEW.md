@@ -26,8 +26,8 @@ with checks tailored to this Swift package and the CST format.
 - Does each change belong to its layer? The CST core should stay general purpose, and
   `UIText` should reach it only through the public API.
 - If the change affects how files are read, was it checked against real tables, and does
-  it agree with the specification? Does a malformed entry get reported rather than
-  stopping the read?
+  it agree with [the specification](doc/CST.md), or update it? Does a malformed entry get
+  reported rather than stopping the read?
 - Do new standard library or Foundation APIs need a newer Apple OS than the package
   supports? A Linux build does not show this.
 - Do focused tests cover the changed behavior? Is a run from a scratch package needed

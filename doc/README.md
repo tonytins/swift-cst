@@ -53,10 +53,53 @@ let output = """
 print(output)
 ```
 
+Keys must match whole, so `ok` doesn't find `ok button`. Keys can contain spaces
+and can be indented.
+
 Whole-line `//` and `#` comments are ignored. Block comments beginning with
 `/*` are ignored through the line containing `*/`. These comment lines are also
 ignored inside multiline values. An unterminated value does not consume later
 entries.
+
+See [the CST specification](CST.md) for the full format.
+
+### Placeholders
+
+Variables fill placeholders in order. Padding follows C's `printf`.
+
+| Placeholder | Fills in | 7 becomes |
+| --- | --- | --- |
+| `%s` | Text | `7` |
+| `%d`, `%i`, `%u`, `%ld` | A number | `7` |
+| `%3d` | A number, at least 3 characters, filled with spaces | `  7` |
+| `%03d` | A number, at least 3 characters, filled with zeros | `007` |
+| `%.3d` | A number, at least 3 digits | `007` |
+| `%%` | One percent sign, using no variable | |
+
+A placeholder with no variable left stays as written, so a mistake is visible, and
+any other use of `%` is left alone.
+
+### CSTTable
+
+`CST.parse` reads the whole document on every call, and returns `*** MISSING ***`
+for a missing key. `CSTTable` reads it once, and its lookups return `nil` instead:
+
+```swift
+let table = CSTTable(input)
+
+if let mail = table.value(forKey: "mail") {
+  print(CST.format(mail, with: [5]))
+}
+```
+
+This is the layer to build on if you're writing your own wrapper. `entries` lists every
+value in file order with its `key`, `name`, and `value`. A value that was never closed
+stays in the list with a `nil` value, so its offset in the list is still its position.
+`problems` lists unclosed values and repeated keys with their line numbers. Values are
+returned untouched, so use `CST.format(_:with:)` to fill their placeholders.
+
+Reading a table never fails. A malformed entry is reported, and the rest of the table
+stays usable.
 
 ### UIText
 
@@ -84,8 +127,32 @@ let swedish = UIText(
 let translated = try swedish.text(for: 152, key: 1)
 ```
 
-Missing file IDs and keys return `*** MISSING ***`. Filesystem errors are
-thrown to the caller.
+New & Improved keeps its tables in `gamedata/uitext/<language>.dir`. Earlier versions
+have one language in `gamedata/uitext.dir`, which you can read by passing `uitext` as
+the language and `gamedata` as the base path:
+
+```swift
+import Foundation
+
+let baseGame = UIText(
+  language: "uitext",
+  basePath: URL(fileURLWithPath: "/path/to/gamedata")
+)
+```
+
+`UIText` is built for The Sims Online's tables, so it also:
+
+- Reads UTF-8 and Windows-1252 files.
+- Finds a value with no key of its own by its position among the table's values, from 0.
+  A key written in the file always wins over a position.
+- Follows a value that refers to an entry in another table, by one step.
+- Reads each table once, so changes to a file after its first lookup aren't seen.
+
+Use `table(for:)` to get a whole `CSTTable`, such as to read values in order or check
+reported problems.
+
+Missing file IDs, keys, and language directories return `*** MISSING ***`. Other
+filesystem errors are thrown to the caller.
 
 Parsing and file lookup are synchronous. Async overloads remain temporarily
 available for source compatibility and are deprecated.

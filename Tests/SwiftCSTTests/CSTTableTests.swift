@@ -1,29 +1,29 @@
+import Foundation
 import Testing
 
 @testable import SwiftCST
+
+/// Returns the example from the specification page, so the page and the tests can't drift apart.
+func specificationExample(filePath: String = #filePath) throws -> String {
+  let page = URL(fileURLWithPath: filePath)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .appendingPathComponent("doc/CST.md")
+  let text = try String(contentsOf: page, encoding: .utf8)
+  let marker = try #require(text.range(of: "<!-- The specification example. -->"))
+  let open = try #require(text.range(of: "```text\n", range: marker.upperBound..<text.endIndex))
+  let close = try #require(text.range(of: "\n```", range: open.upperBound..<text.endIndex))
+
+  return String(text[open.upperBound..<close.lowerBound])
+}
 
 struct CSTTableTests {
   private typealias Entry = CSTTable.Entry
 
   @Test
-  func readsSpecificationExample() {
-    let document = """
-      // A comment. So is a line starting with #, and a /* */ block.
-      1 ^A value after its key^
-          2 ^An indented key^
-      3
-      ^A key above its value^
-      4 ^A value that runs
-      across lines^
-      ok button ^A key with spaces^
-      kErrNoFood
-      ^A name above its value^
-      A note for translators.
-
-      ^A value with a note above it^
-      ^A value on its own^ with a note after it
-      ^Another value on its own^
-      """
+  func readsSpecificationExample() throws {
+    let document = try specificationExample()
 
     let expected = [
       Entry(key: "1", name: nil, value: "A value after its key"),

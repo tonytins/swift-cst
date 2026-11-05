@@ -167,23 +167,7 @@ struct UITextTests {
 
   @Test
   func readsTheSpecificationExampleByKeyNameAndPosition() throws {
-    let example = """
-      // A comment. So is a line starting with #, and a /* */ block.
-      1 ^A value after its key^
-          2 ^An indented key^
-      3
-      ^A key above its value^
-      4 ^A value that runs
-      across lines^
-      ok button ^A key with spaces^
-      kErrNoFood
-      ^A name above its value^
-      A note for translators.
-
-      ^A value with a note above it^
-      ^A value on its own^ with a note after it
-      ^Another value on its own^
-      """
+    let example = try specificationExample()
 
     try withCatalog(["_1_example.cst": example]) { catalog, _ throws in
       let expected = [

@@ -14,8 +14,9 @@ lookups run through them in this order: `UIText`, then the CST core.
   API.
 
 `Sources/SwiftCST` holds the library, `Tests/SwiftCSTTests` covers its behavior, and
-`addons` holds editor support. [doc/README.md](doc/README.md) documents usage, and
-[doc/changelog.md](doc/changelog.md) records each release.
+`addons` holds editor support. [doc/README.md](doc/README.md) documents usage,
+[doc/CST.md](doc/CST.md) specifies the format, and [doc/changelog.md](doc/changelog.md)
+records each release.
 
 ## Build and test
 
@@ -42,12 +43,14 @@ lookups run through them in this order: `UIText`, then the CST core.
 
 ## Format rules
 
-[Hudini's CST specification](https://github.com/tonytins/Hudini/blob/main/doc/CST.md) is
-the reference for how real files behave, and it labels how sure each rule is. Hand-written
-samples tend to hold only the shapes their author already knows about, so check parser
-changes against real tables when you have them. `TSO_GAME_DIR`, `TSO_CLASSIC_DIR`, and
-`TSO_BETA_DIR` point to local installs when they are set. Do not commit files from a game
-install.
+[The CST specification](doc/CST.md) is the reference for how real files behave, and it
+labels how sure each rule is. Change it along with any change to how files are read. Tests
+read its example directly, so the page and the code can't drift apart.
+
+Hand-written samples tend to hold only the shapes their author already knows about, so check
+parser changes against real tables when you have them. `TSO_GAME_DIR`, `TSO_CLASSIC_DIR`, and
+`TSO_BETA_DIR` point to local installs when they are set, and `swift test` then reads every
+table in them. Do not commit files from a game install.
 
 See [REVIEW.md](REVIEW.md) for the project's review checklist.
 
