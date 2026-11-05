@@ -212,6 +212,41 @@ struct CSTTableTests {
   }
 
   @Test
+  func readsSeveralValuesOnOneLine() {
+    let table = CSTTable("7 ^One^ 8 ^Two^ ^Third^")
+
+    #expect(table.value(forKey: 7) == "One")
+    #expect(table.value(forKey: 8) == "Two")
+    #expect(table.entries.map(\.key) == ["7", "8", nil])
+    #expect(table.entries[2].value == "Third")
+  }
+
+  @Test
+  func aKeyNeedsNoSpaceBeforeItsValue() {
+    #expect(CSTTable("6^No space^").value(forKey: 6) == "No space")
+  }
+
+  @Test
+  func aClosingCaretCanSitOnItsOwnLine() {
+    let table = CSTTable(
+      """
+      1 ^First line
+      last ^
+      2 ^Next^
+      3 ^One
+      ^
+      4 ^After^
+      """
+    )
+
+    #expect(table.value(forKey: 1) == "First line\nlast ")
+    #expect(table.value(forKey: 2) == "Next")
+    #expect(table.value(forKey: 3) == "One\n")
+    #expect(table.value(forKey: 4) == "After")
+    #expect(table.problems.isEmpty)
+  }
+
+  @Test
   func firstValueWinsForARepeatedKey() {
     let table = CSTTable(
       entries: [
