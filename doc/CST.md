@@ -283,12 +283,22 @@ that should miss as well as lookups that should succeed. SwiftCST's test
 `readsEveryTableOfALocalInstall` reads every table when `TSO_BETA_DIR`, `TSO_CLASSIC_DIR`,
 or `TSO_GAME_DIR` is set. Without one, this page's example covers the same shapes.
 
-## Acknowledgments
+## History and acknowledgments
 
-This builds on [CST.NET](https://github.com/tonytins/cstdotnet),
-[cstrs](https://github.com/tonytins/cstrs), and SwiftCST, written without access to real
-files, and on [FreeSO](https://github.com/riperiperi/FreeSO)'s loader. It was first
-reconstructed for [Hudini](https://github.com/tonytins/Hudini), whose reader finds the
-same text as SwiftCST's on every key in all three versions. Treating text outside carets as
-ignorable first appears in cstrs, and keys above values and unclosed-value handling come from
-SwiftCST.
+This family of parsers began with [CST.NET](https://github.com/tonytins/cstdotnet), a rewrite
+of [FreeSO](https://github.com/riperiperi/FreeSO)'s loader, meant to be reusable and to work as
+a possible drop-in replacement in a fork of FreeSO. It started out against real files, but its
+unit tests used sample data alone, covering as many edge cases as could be thought of for a
+general-purpose library. CST began with TSO, but it's handy enough on its own for any project,
+and it offers a clear path to translation.
+
+Later rewrites, including [cstrs](https://github.com/tonytins/cstrs) and SwiftCST, were a way to
+learn how complex algorithms work. Variables were the part that kept tripping them up, and sample
+data couldn't show how much real tables actually hold.
+
+[Hudini](https://github.com/tonytins/Hudini) brought the family full circle, back to reading
+TSO's own tables for a reimplementation of the game. This specification was first reconstructed
+there, and Hudini's reader finds the same text as SwiftCST's on every key in all three versions.
+
+Treating text outside carets as ignorable first appears in cstrs, and keys above values and
+unclosed-value handling come from SwiftCST.
