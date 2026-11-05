@@ -150,11 +150,25 @@ struct ParserTests {
 
   @Test(
     arguments: zip(
-      ["%03d", "%3d", "%.2d", "%03i", "%.2u", "%02ld"],
-      ["007", "007", "07", "007", "07", "07"]
+      ["%03d", "%.2d", "%03i", "%.2u", "%02ld", "%3d", "%3i", "%3ld"],
+      ["007", "07", "007", "07", "07", "  7", "  7", "  7"]
     ))
-  func numberPlaceholdersPadWithZeros(placeholder: String, expected: String) {
+  func numberPlaceholdersPadLikePrintf(placeholder: String, expected: String) {
     #expect(CST.parse("1 ^\(placeholder)^", key: 1, variables: 7) == expected)
+  }
+
+  @Test(
+    arguments: zip(
+      ["%3d", "%03d", "%.3d", "%2d", "%02d", "%.1d", "%3s"],
+      [" -5", "-05", "-005", "-5", "-5", "-5", "-5"]
+    ))
+  func paddingKeepsANegativeSignInFront(placeholder: String, expected: String) {
+    #expect(CST.parse("1 ^\(placeholder)^", key: 1, variables: -5) == expected)
+  }
+
+  @Test
+  func paddingNeverShortensANumber() {
+    #expect(CST.parse("1 ^%3d %03d %.3d^", key: 1, variables: 1234, 1234, 1234) == "1234 1234 1234")
   }
 
   @Test

@@ -23,8 +23,8 @@ extension CST {
   /// - Parameters:
   ///   - value: The text to fill.
   ///   - variables: Values used to fill the placeholders in order. `%s`, `%d`, `%i`, `%u`, and `%ld`
-  ///     take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes one percent
-  ///     sign.
+  ///     take a variable. `%3d` pads with spaces, and `%03d` and `%.3d` with zeros. `%%` becomes
+  ///     one percent sign.
   /// - Returns: The filled text.
   public static func format(
     _ value: String,
@@ -39,8 +39,8 @@ extension CST {
   ///   - content: The CST document to parse.
   ///   - key: The entry key to find.
   ///   - variables: Values used to fill the value's placeholders in order. `%s`, `%d`, `%i`, `%u`,
-  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
-  ///     one percent sign.
+  ///     and `%ld` take a variable. `%3d` pads with spaces, and `%03d` and `%.3d` with zeros.
+  ///     `%%` becomes one percent sign.
   /// - Returns: The parsed value, or the missing-message marker. Use ``CSTTable`` to tell a missing
   ///   value from real text.
   public static func parse(
@@ -60,8 +60,8 @@ extension CST {
   ///   - content: The CST document to parse.
   ///   - key: The entry key to find.
   ///   - variables: Values used to fill the value's placeholders in order. `%s`, `%d`, `%i`, `%u`,
-  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
-  ///     one percent sign.
+  ///     and `%ld` take a variable. `%3d` pads with spaces, and `%03d` and `%.3d` with zeros.
+  ///     `%%` becomes one percent sign.
   /// - Returns: The parsed value, or the missing-message marker. Use ``CSTTable`` to tell a missing
   ///   value from real text.
   @available(*, deprecated, message: "Parsing is synchronous; use the synchronous overload.")

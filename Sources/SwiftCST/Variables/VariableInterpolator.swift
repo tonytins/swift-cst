@@ -1,8 +1,7 @@
 struct VariableInterpolator {
   private struct Placeholder {
     let end: String.Index
-    let isNumber: Bool
-    let width: Int
+    let padding: NumberPadding?
   }
 
   func substitute(_ template: String, with variables: [String]) -> String {
@@ -31,8 +30,7 @@ struct VariableInterpolator {
       }
 
       if let variable = remainingVariables.popFirst() {
-        result.append(
-          contentsOf: placeholder.isNumber ? variable.padded(toWidth: placeholder.width) : variable)
+        result.append(contentsOf: placeholder.padding.map(variable.padded) ?? variable)
       } else {
         result.append(contentsOf: template[index..<placeholder.end])
       }
@@ -67,10 +65,15 @@ struct VariableInterpolator {
       return nil
     }
 
+    let width = Int(digits) ?? 0
+    let padding: NumberPadding =
+      hasPrecision
+      ? .digits(count: width)
+      : digits.hasPrefix("0") ? .zeros(width: width) : .spaces(width: width)
+
     return Placeholder(
       end: template.index(after: rest.startIndex),
-      isNumber: conversion != "s",
-      width: Int(digits) ?? 0
+      padding: conversion == "s" ? nil : padding
     )
   }
 }
