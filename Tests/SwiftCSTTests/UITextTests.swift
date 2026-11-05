@@ -279,6 +279,21 @@ struct UITextTests {
   }
 
   @Test
+  func textIfPresentTakesVariablesFromAnArray() throws {
+    let variables: [String] = ["Maya", "5"]
+
+    try withCatalog(["_1_table.cst": "1 ^%s has %d new messages, 100%%^"]) { catalog, _ throws in
+      #expect(
+        try catalog.textIfPresent(for: 1, key: 1, with: variables)
+          == "Maya has 5 new messages, 100%")
+      #expect(
+        try catalog.textIfPresent(for: 1, key: 1, with: variables)
+          == catalog.textIfPresent(for: 1, key: 1, variables: "Maya", "5"))
+      #expect(try catalog.textIfPresent(for: 1, key: 2, with: variables) == nil)
+    }
+  }
+
+  @Test
   func textIfPresentReportsEveryKindOfMissAsNil() throws {
     let references = """
       1 ^\u{2}<cst><cst_id>2</cst_id><string_id>9</string_id></cst>^

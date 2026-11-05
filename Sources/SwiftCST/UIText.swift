@@ -142,6 +142,28 @@ public struct UIText: Sendable {
     try lookUpText(for: id, key: key, variables: variables)
   }
 
+  /// Returns a localized string, or `nil` when it's missing, filling its placeholders from an
+  /// array.
+  ///
+  /// This is ``textIfPresent(for:key:variables:)`` for a wrapper that already holds its variables
+  /// in an array, which a variadic parameter can't take. It has its own label because Swift would
+  /// otherwise pass the whole array to the variadic version as one variable.
+  ///
+  /// - Parameters:
+  ///   - id: The numeric identifier in the CST filename.
+  ///   - key: The entry key in the file, or a position for a value with no key of its own.
+  ///   - variables: Values used to fill the entry's placeholders in order, as for
+  ///     ``textIfPresent(for:key:variables:)``.
+  /// - Throws: An error if the language directory or selected file cannot be read.
+  /// - Returns: The localized entry, or `nil`.
+  public func textIfPresent(
+    for id: Int,
+    key: some CustomStringConvertible,
+    with variables: [any CustomStringConvertible]
+  ) throws -> String? {
+    try lookUpText(for: id, key: key, variables: variables)
+  }
+
   /// Asynchronously named compatibility overload for localized text lookup.
   ///
   /// File discovery and reading are synchronous. Use the synchronous overload

@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.3.1
+
+Added:
+
+- `UIText.textIfPresent(for:key:with:)`, which takes its variables as an array, for a
+  wrapper that already holds them in one. A variadic parameter can't take an array, and
+  passing one to `textIfPresent(for:key:variables:)` fills the first placeholder with the
+  whole array's text, so this has its own label.
+
 ## 0.3.0
 
 Added:

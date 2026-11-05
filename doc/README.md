@@ -165,6 +165,10 @@ if let newMail = try english.textIfPresent(for: 101, key: "newMail", variables: 
 }
 ```
 
+A wrapper that already holds its variables in an array can pass them with
+`textIfPresent(for:key:with:)`. Don't pass an array to `variables:`, which takes it
+as one variable.
+
 Other filesystem errors are thrown to the caller.
 
 Parsing and file lookup are synchronous. Async overloads remain temporarily
