@@ -8,16 +8,31 @@ public struct CST {
     key: some CustomStringConvertible,
     variables: [any CustomStringConvertible]
   ) -> String {
-    let entry = CSTTable(content).value(forKey: key) ?? missingMessage
-    let stringVariables = variables.map { String(describing: $0) }
-
-    return VariableInterpolator().substitute(entry, with: stringVariables)
+    format(CSTTable(content).value(forKey: key) ?? missingMessage, with: variables)
   }
 }
 
 // MARK: - Public API
 
 extension CST {
+  /// Fills a value's placeholders, for code that reads values from a ``CSTTable``.
+  ///
+  /// A placeholder with no variable left stays as written, so a mistake is visible, and any other
+  /// use of `%` is left alone.
+  ///
+  /// - Parameters:
+  ///   - value: The text to fill.
+  ///   - variables: Values used to fill the placeholders in order. `%s`, `%d`, `%i`, `%u`, and `%ld`
+  ///     take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes one percent
+  ///     sign.
+  /// - Returns: The filled text.
+  public static func format(
+    _ value: String,
+    with variables: [any CustomStringConvertible]
+  ) -> String {
+    VariableInterpolator().substitute(value, with: variables.map { String(describing: $0) })
+  }
+
   /// Parses the value for `key` and substitutes the supplied variables.
   ///
   /// - Parameters:

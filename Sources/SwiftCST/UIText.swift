@@ -1,6 +1,32 @@
 import Foundation
 
-/// Looks up translated strings in language-specific CST files.
+/// Tables already read from disk, shared by copies of a `UIText`.
+///
+/// `NSLock` guards every access to `tables`, which is what makes `@unchecked Sendable` safe.
+private final class LoadedTables: @unchecked Sendable {
+  private let lock = NSLock()
+  private var tables: [Int: CSTTable] = [:]
+
+  subscript(id: Int) -> CSTTable? {
+    get {
+      lock.lock()
+      defer { lock.unlock() }
+      return tables[id]
+    }
+    set {
+      lock.lock()
+      defer { lock.unlock() }
+      tables[id] = newValue
+    }
+  }
+}
+
+/// Looks up translated strings in language-specific CST files, the way The Sims Online does.
+///
+/// Each table is read once, so changes to a file after its first lookup aren't seen.
+///
+/// New & Improved keeps its tables in `gamedata/uitext/<language>.dir`. Earlier versions have one
+/// language in `gamedata/uitext.dir`, which `UIText(language: "uitext", basePath: gameData)` reads.
 public struct UIText: Sendable {
   /// The language directory to search, such as `english.dir`.
   public let language: String
@@ -37,6 +63,8 @@ public struct UIText: Sendable {
 
   let fallbackPath: URL
 
+  private let tables = LoadedTables()
+
   init(language: String, basePath: URL, fallbackPath: URL) {
     self.language = language
     self.basePath = basePath
@@ -47,6 +75,10 @@ public struct UIText: Sendable {
   ///
   /// Files use the `_<id>_<name>.cst` naming convention. Missing files and keys
   /// return the same missing-message marker as `CST.parse`.
+  ///
+  /// A value with no key of its own can also be found by its position among the
+  /// table's values, from 0. A value that refers to an entry in another table
+  /// returns that entry's text.
   ///
   /// - Parameters:
   ///   - id: The numeric identifier in the CST filename.
@@ -88,17 +120,99 @@ public struct UIText: Sendable {
     try loadText(for: id, key: key, variables: variables)
   }
 
+  /// Returns the table in the CST file whose name contains `id`.
+  ///
+  /// The first successful read is kept, so later lookups don't touch the disk. A table that isn't
+  /// found is looked for again on the next call.
+  ///
+  /// - Parameter id: The numeric identifier in the CST filename.
+  /// - Throws: An error if the language directory or selected file cannot be read.
+  /// - Returns: The table, or `nil` if no file has this identifier.
+  public func table(for id: Int) throws -> CSTTable? {
+    if let table = tables[id] {
+      return table
+    }
+
+    guard let fileURL = try fileURL(for: id) else {
+      return nil
+    }
+
+    let table = CSTTable(Self.decoded(try Data(contentsOf: fileURL)))
+    tables[id] = table
+    return table
+  }
+
   private func loadText(
     for id: Int,
     key: some CustomStringConvertible,
     variables: [any CustomStringConvertible]
   ) throws -> String {
-    guard let fileURL = try fileURL(for: id) else {
-      return missingMessage
+    let value = try resolvedValue(inTable: id, key: String(describing: key))
+    return CST.format(value ?? missingMessage, with: variables)
+  }
+
+  /// Returns a value, following at most one reference so that a cycle can't hang a lookup.
+  private func resolvedValue(inTable id: Int, key: String) throws -> String? {
+    guard let value = try table(for: id).flatMap({ Self.value(in: $0, key: key) }) else {
+      return nil
     }
 
-    let content = try String(contentsOf: fileURL, encoding: .utf8)
-    return CST.parse(content, key: key, variables: variables)
+    guard let target = Self.referenceTarget(in: value) else {
+      return value
+    }
+
+    let targetValue = try table(for: target.table).flatMap { Self.value(in: $0, key: target.key) }
+    return targetValue.flatMap { Self.referenceTarget(in: $0) == nil ? $0 : nil }
+  }
+
+  /// Returns the value for a key or name, or for a position among the table's values, from 0.
+  ///
+  /// A position only reaches a value with no key of its own. Names can't collide with positions,
+  /// because a number on the line above a value is its key.
+  private static func value(in table: CSTTable, key: String) -> String? {
+    if let value = table.value(forKey: key) {
+      return value
+    }
+
+    guard let position = Int(key), String(position) == key,
+      table.entries.indices.contains(position), table.entries[position].key == nil
+    else {
+      return nil
+    }
+
+    return table.entries[position].value
+  }
+
+  /// Reads a reference such as `<cst><cst_id>276</cst_id><string_id>1</string_id></cst>`, which
+  /// starts with a control character.
+  private static func referenceTarget(in value: String) -> (table: Int, key: String)? {
+    guard value.hasPrefix("\u{2}<cst>"),
+      let table = enclosedText(in: value, tag: "cst_id").flatMap({ Int($0) }),
+      let key = enclosedText(in: value, tag: "string_id")
+    else {
+      return nil
+    }
+
+    return (table, key)
+  }
+
+  private static func enclosedText(in value: String, tag: String) -> String? {
+    guard let open = value.range(of: "<\(tag)>"),
+      let close = value.range(of: "</\(tag)>", range: open.upperBound..<value.endIndex)
+    else {
+      return nil
+    }
+
+    return String(value[open.upperBound..<close.lowerBound])
+  }
+
+  /// Decodes a file as UTF-8, then as Windows-1252, the two encodings real tables use.
+  ///
+  /// A file that is neither still loads, with replacement characters for its invalid bytes.
+  private static func decoded(_ data: Data) -> String {
+    String(data: data, encoding: .utf8)
+      ?? String(data: data, encoding: .windowsCP1252)
+      ?? String(decoding: data, as: UTF8.self)
   }
 
   private func fileURL(for id: Int) throws -> URL? {

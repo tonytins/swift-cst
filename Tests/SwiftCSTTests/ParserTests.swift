@@ -169,6 +169,14 @@ struct ParserTests {
   }
 
   @Test
+  func formatFillsAValueFromATable() {
+    let value = CSTTable("1 ^%s has %d^").value(forKey: 1)
+
+    #expect(CST.format(value ?? "", with: ["Bob", 2]) == "Bob has 2")
+    #expect(CST.format("%s %s", with: ["only one"]) == "only one %s")
+  }
+
+  @Test
   func asyncParserCompatibilityOverload() async {
     let parsed = await CST.parse("hello ^Hello!^", key: "hello")
 
