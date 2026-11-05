@@ -46,7 +46,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.2.0"),
+        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.3.0"),
     ],
     targets: [
         .executableTarget(name: "<your-game>", dependencies: [
@@ -103,8 +103,23 @@ print(greeting)
 
 Each table is read once, so changes to a file after its first lookup aren't seen.
 
-Missing file IDs, keys, and language directories return `*** MISSING ***`. Other
-filesystem errors are thrown to the caller.
+To read an install, pass its `gamedata` directory, and `UIText` finds the layout
+itself, whether New & Improved's `uitext/<language>.dir` or the earlier `uitext.dir`:
+
+```swift
+let install = UIText(gameData: URL(fileURLWithPath: "/path/to/gamedata"))
+```
+
+Missing file IDs, keys, and language directories return `*** MISSING ***`. To tell a
+missing string from real text, use `textIfPresent`, which returns `nil` instead:
+
+```swift
+if let greeting = try text.textIfPresent(for: 154, key: 1) {
+    print(greeting)
+}
+```
+
+Other filesystem errors are thrown to the caller.
 
 Parsing and file lookup are synchronous. Async overloads remain temporarily
 available for source compatibility and are deprecated.

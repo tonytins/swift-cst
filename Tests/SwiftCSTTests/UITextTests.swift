@@ -265,6 +265,120 @@ struct UITextTests {
   }
 
   @Test
+  func textIfPresentFindsWhatTextFinds() throws {
+    let table = """
+      greeting ^Hello %s!^
+      ^at position 1^
+      """
+
+    try withCatalog(["_1_table.cst": table]) { catalog, _ throws in
+      #expect(
+        try catalog.textIfPresent(for: 1, key: "greeting", variables: "World") == "Hello World!")
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == "at position 1")
+    }
+  }
+
+  @Test
+  func textIfPresentReportsEveryKindOfMissAsNil() throws {
+    let references = """
+      1 ^\u{2}<cst><cst_id>2</cst_id><string_id>9</string_id></cst>^
+      2 ^\u{2}<cst><cst_id>9</cst_id><string_id>1</string_id></cst>^
+      3 ^\u{2}<cst><cst_id>1</cst_id><string_id>3</string_id></cst>^
+      unfinished ^never closed
+      """
+
+    try withCatalog(["_1_refs.cst": references, "_2_targets.cst": "1 ^target^"]) {
+      catalog, _ throws in
+      #expect(try catalog.textIfPresent(for: 9, key: 1) == nil, "Missing table")
+      #expect(try catalog.textIfPresent(for: 2, key: "nope") == nil, "Missing key")
+      #expect(try catalog.textIfPresent(for: 1, key: "unfinished") == nil, "Unclosed value")
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == nil, "Missing reference target")
+      #expect(try catalog.textIfPresent(for: 1, key: 2) == nil, "Reference to a missing table")
+      #expect(try catalog.textIfPresent(for: 1, key: 3) == nil, "Reference chain")
+      #expect(try catalog.text(for: 1, key: 3) == "*** MISSING ***")
+    }
+  }
+
+  @Test
+  func textIfPresentThrowsWhenAFileCannotBeRead() throws {
+    try withCatalog([:] as [String: String]) { catalog, directory throws in
+      // A directory with a table's name exists but can't be read as one.
+      try FileManager.default.createDirectory(
+        at: directory.appendingPathComponent("_1_table.cst"),
+        withIntermediateDirectories: false
+      )
+
+      #expect(throws: (any Error).self) { try catalog.textIfPresent(for: 1, key: 1) }
+      #expect(throws: (any Error).self) { try catalog.text(for: 1, key: 1) }
+    }
+  }
+
+  /// Runs `body` with a temporary `gamedata` directory holding `directories`, each given by its
+  /// path under `gamedata` and holding one table, `_1_table.cst`.
+  private func withGameData(
+    _ directories: [String: String],
+    body: (URL) throws -> Void
+  ) throws {
+    let gameData = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    try FileManager.default.createDirectory(at: gameData, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: gameData) }
+
+    for (path, table) in directories {
+      let directory = gameData.appendingPathComponent(path, isDirectory: true)
+      try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+      try Data(table.utf8).write(to: directory.appendingPathComponent("_1_table.cst"))
+    }
+
+    try body(gameData)
+  }
+
+  @Test
+  func gameDataReadsEitherInstallLayout() throws {
+    try withGameData(["uitext/english.dir": "1 ^New & Improved^"]) { gameData throws in
+      let catalog = UIText(gameData: gameData)
+
+      #expect(catalog.language == "english")
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == "New & Improved")
+    }
+
+    try withGameData(["uitext.dir": "1 ^base game^"]) { gameData throws in
+      let catalog = UIText(gameData: gameData)
+
+      #expect(catalog.language == "uitext")
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == "base game")
+    }
+  }
+
+  @Test
+  func gameDataPrefersTheLanguageDirectory() throws {
+    let directories = [
+      "uitext/english.dir": "1 ^English^",
+      "uitext/swedish.dir": "1 ^Swedish^",
+      "uitext.dir": "1 ^single language^",
+    ]
+
+    try withGameData(directories) { gameData throws in
+      #expect(try UIText(gameData: gameData).textIfPresent(for: 1, key: 1) == "English")
+      #expect(
+        try UIText(gameData: gameData, language: "swedish").textIfPresent(for: 1, key: 1)
+          == "Swedish"
+      )
+      #expect(
+        try UIText(gameData: gameData, language: "french").textIfPresent(for: 1, key: 1)
+          == "single language"
+      )
+    }
+  }
+
+  @Test
+  func gameDataMissesWithoutEitherDirectory() throws {
+    try withGameData([:]) { gameData throws in
+      #expect(try UIText(gameData: gameData).textIfPresent(for: 1, key: 1) == nil)
+    }
+  }
+
+  @Test
   func theCoreLeavesReferencesAlone() {
     let reference = "\u{2}<cst><cst_id>2</cst_id><string_id>1</string_id></cst>"
 
@@ -332,13 +446,8 @@ struct UITextTests {
     }
 
     let gameData = URL(fileURLWithPath: install).appendingPathComponent("gamedata")
-    let languagePath = gameData.appendingPathComponent("uitext/english.dir")
-    let isSingleLanguage = !FileManager.default.fileExists(atPath: languagePath.path)
-    let catalog =
-      isSingleLanguage
-      ? UIText(language: "uitext", basePath: gameData)
-      : UIText(language: "english", basePath: gameData.appendingPathComponent("uitext"))
-    let directory = isSingleLanguage ? gameData.appendingPathComponent("uitext.dir") : languagePath
+    let catalog = UIText(gameData: gameData)
+    let directory = catalog.basePath.appendingPathComponent("\(catalog.language).dir")
     let tableIDs = try FileManager.default.contentsOfDirectory(atPath: directory.path)
       .compactMap { $0.first == "_" ? Int($0.dropFirst().prefix { $0 != "_" }) : nil }
 
@@ -360,6 +469,7 @@ struct UITextTests {
 
         valueCount += 1
         #expect(text != "*** MISSING ***", "Table \(id), key \(key)")
+        #expect(try catalog.textIfPresent(for: id, key: key) == text, "Table \(id), key \(key)")
 
         if value.hasPrefix("\u{2}") {
           #expect(!text.hasPrefix("\u{2}"), "Table \(id), key \(key)")

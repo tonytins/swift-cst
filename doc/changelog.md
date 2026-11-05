@@ -1,5 +1,19 @@
 # Change Log
 
+## 0.3.0
+
+Added:
+
+- `UIText.textIfPresent(for:key:variables:)`, which finds the same text as
+  `text(for:key:variables:)` but returns `nil` rather than `*** MISSING ***` when the
+  table or key is missing, the value was never closed, or a reference can't be followed
+- `UIText(gameData:language:)`, which reads an install's `gamedata` directory in either
+  layout: New & Improved's `uitext/<language>.dir`, or the earlier `uitext.dir`
+
+Nothing existing changes. Across the beta, base game, and New & Improved, `textIfPresent`
+returns the same text as Hudini's `CSTCatalog` for every key, every miss probed, and every
+string the game's `.uis` files use.
+
 ## 0.2.0
 
 SwiftCST can now read real The Sims Online tables. The reader was rewritten against the

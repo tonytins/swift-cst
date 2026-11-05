@@ -128,17 +128,18 @@ let translated = try swedish.text(for: 152, key: 1)
 ```
 
 New & Improved keeps its tables in `gamedata/uitext/<language>.dir`. Earlier versions
-have one language in `gamedata/uitext.dir`, which you can read by passing `uitext` as
-the language and `gamedata` as the base path:
+have one language in `gamedata/uitext.dir`. Pass an install's `gamedata` directory and
+`UIText` uses whichever it has, preferring the language directory:
 
 ```swift
 import Foundation
 
-let baseGame = UIText(
-  language: "uitext",
-  basePath: URL(fileURLWithPath: "/path/to/gamedata")
-)
+let install = UIText(gameData: URL(fileURLWithPath: "/path/to/gamedata"))
+let french = UIText(gameData: URL(fileURLWithPath: "/path/to/gamedata"), language: "french")
 ```
+
+This searches only the install, not the app bundle. With an earlier version, `language`
+doesn't apply, and the catalog's `language` is `uitext`.
 
 `UIText` is built for The Sims Online's tables, so it also:
 
@@ -151,8 +152,20 @@ let baseGame = UIText(
 Use `table(for:)` to get a whole `CSTTable`, such as to read values in order or check
 reported problems.
 
-Missing file IDs, keys, and language directories return `*** MISSING ***`. Other
-filesystem errors are thrown to the caller.
+Missing file IDs, keys, and language directories return `*** MISSING ***`, which a
+program can't tell from real text. `textIfPresent` finds the same text but returns
+`nil` instead, including for a value that was never closed or a reference it can't
+follow:
+
+```swift
+if let newMail = try english.textIfPresent(for: 101, key: "newMail", variables: 5) {
+  print(newMail)
+} else {
+  print("Table 101 has no newMail.")
+}
+```
+
+Other filesystem errors are thrown to the caller.
 
 Parsing and file lookup are synchronous. Async overloads remain temporarily
 available for source compatibility and are deprecated.

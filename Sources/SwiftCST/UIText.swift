@@ -26,7 +26,7 @@ private final class LoadedTables: @unchecked Sendable {
 /// Each table is read once, so changes to a file after its first lookup aren't seen.
 ///
 /// New & Improved keeps its tables in `gamedata/uitext/<language>.dir`. Earlier versions have one
-/// language in `gamedata/uitext.dir`, which `UIText(language: "uitext", basePath: gameData)` reads.
+/// language in `gamedata/uitext.dir`. `UIText(gameData:language:)` reads either.
 public struct UIText: Sendable {
   /// The language directory to search, such as `english.dir`.
   public let language: String
@@ -61,11 +61,32 @@ public struct UIText: Sendable {
     )
   }
 
-  let fallbackPath: URL
+  /// Creates a text catalog for an install's `gamedata` directory, in either layout.
+  ///
+  /// New & Improved's `uitext/<language>.dir` is used when it exists. Otherwise this reads the
+  /// earlier single-language `uitext.dir`, where `language` doesn't apply, and ``language`` is
+  /// `uitext`. Only the install is searched, not the app bundle. When neither directory exists,
+  /// every lookup misses.
+  ///
+  /// - Parameters:
+  ///   - gameData: The install's `gamedata` directory.
+  ///   - language: The language directory name without the `.dir` suffix.
+  public init(gameData: URL, language: String = "english") {
+    let languages = gameData.appendingPathComponent("uitext", isDirectory: true)
+    let languageDirectory = languages.appendingPathComponent("\(language).dir", isDirectory: true)
+
+    if FileManager.default.fileExists(atPath: languageDirectory.path) {
+      self.init(language: language, basePath: languages, fallbackPath: nil)
+    } else {
+      self.init(language: "uitext", basePath: gameData, fallbackPath: nil)
+    }
+  }
+
+  let fallbackPath: URL?
 
   private let tables = LoadedTables()
 
-  init(language: String, basePath: URL, fallbackPath: URL) {
+  init(language: String, basePath: URL, fallbackPath: URL?) {
     self.language = language
     self.basePath = basePath
     self.fallbackPath = fallbackPath
@@ -97,6 +118,30 @@ public struct UIText: Sendable {
     try loadText(for: id, key: key, variables: variables)
   }
 
+  /// Returns a localized string from the CST file whose name contains `id`, or `nil` when it's
+  /// missing.
+  ///
+  /// This finds the same text as ``text(for:key:variables:)``, which returns a marker instead of
+  /// `nil`, so use this one when a program needs to tell a missing string from real text. It's
+  /// `nil` when the table or key is missing, the value was never closed, or a reference's target is
+  /// missing or is itself a reference.
+  ///
+  /// - Parameters:
+  ///   - id: The numeric identifier in the CST filename.
+  ///   - key: The entry key in the file, or a position for a value with no key of its own.
+  ///   - variables: Values used to fill the entry's placeholders in order. `%s`, `%d`, `%i`, `%u`,
+  ///     and `%ld` take a variable. `%3d` pads with spaces, and `%03d` and `%.3d` with zeros.
+  ///     `%%` becomes one percent sign.
+  /// - Throws: An error if the language directory or selected file cannot be read.
+  /// - Returns: The localized entry, or `nil`.
+  public func textIfPresent(
+    for id: Int,
+    key: some CustomStringConvertible,
+    variables: any CustomStringConvertible...
+  ) throws -> String? {
+    try lookUpText(for: id, key: key, variables: variables)
+  }
+
   /// Asynchronously named compatibility overload for localized text lookup.
   ///
   /// File discovery and reading are synchronous. Use the synchronous overload
@@ -111,7 +156,9 @@ public struct UIText: Sendable {
   /// - Throws: An error if the language directory or selected file cannot be
   ///   read.
   /// - Returns: The localized entry, or the missing-message marker.
-  @available(*, deprecated, message: "UIText file lookup is synchronous; use the synchronous overload.")
+  @available(
+    *, deprecated, message: "UIText file lookup is synchronous; use the synchronous overload."
+  )
   public func text(
     for id: Int,
     key: some CustomStringConvertible,
@@ -147,8 +194,16 @@ public struct UIText: Sendable {
     key: some CustomStringConvertible,
     variables: [any CustomStringConvertible]
   ) throws -> String {
-    let value = try resolvedValue(inTable: id, key: String(describing: key))
-    return CST.format(value ?? missingMessage, with: variables)
+    try lookUpText(for: id, key: key, variables: variables) ?? missingMessage
+  }
+
+  private func lookUpText(
+    for id: Int,
+    key: some CustomStringConvertible,
+    variables: [any CustomStringConvertible]
+  ) throws -> String? {
+    try resolvedValue(inTable: id, key: String(describing: key))
+      .map { CST.format($0, with: variables) }
   }
 
   /// Returns a value, following at most one reference so that a cycle can't hang a lookup.
@@ -216,7 +271,7 @@ public struct UIText: Sendable {
   }
 
   private func fileURL(for id: Int) throws -> URL? {
-    for searchPath in [basePath, fallbackPath] {
+    for searchPath in [basePath] + [fallbackPath].compactMap({ $0 }) {
       let languageDirectory = searchPath.appendingPathComponent(
         "\(language).dir",
         isDirectory: true
@@ -231,7 +286,8 @@ public struct UIText: Sendable {
         options: [.skipsHiddenFiles]
       )
 
-      if let fileURL = files
+      if let fileURL =
+        files
         .sorted(by: { $0.lastPathComponent < $1.lastPathComponent })
         .first(where: { fileURL in
           guard fileURL.pathExtension.caseInsensitiveCompare("cst") == .orderedSame else {

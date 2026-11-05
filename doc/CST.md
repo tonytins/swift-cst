@@ -178,8 +178,9 @@ finding.
 - **Reading never fails:** a table with one bad entry is still useful, so report the
   problem and keep the rest. Only an unreadable file or directory is an error.
 - **Missing text:** report it as missing rather than returning a marker string, which
-  a program cannot tell from real text. SwiftCST's older string-returning lookups still
-  return `*** MISSING ***` for compatibility.
+  a program cannot tell from real text. SwiftCST's `CSTTable.value(forKey:)` and
+  `UIText.textIfPresent` return `nil`, and its older string-returning lookups still return
+  `*** MISSING ***` for compatibility.
 
 ## What values hold
 
