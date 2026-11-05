@@ -37,12 +37,178 @@ struct CSTTableTests {
       Entry(key: nil, name: nil, value: "Another value on its own"),
     ]
 
-    withKnownIssue("CSTTable doesn't scan documents yet") {
-      let table = CSTTable(document)
+    let table = CSTTable(document)
 
-      #expect(table.entries == expected)
-      #expect(table.problems.isEmpty)
-    }
+    #expect(table.entries == expected)
+    #expect(table.problems.isEmpty)
+  }
+
+  @Test(arguments: ["\r\n", "\r", "\n", "\u{2028}"])
+  func readsEveryLineEnding(lineEnding: String) {
+    let table = CSTTable(["1 ^a", "b^", "2", "^c^"].joined(separator: lineEnding))
+
+    #expect(table.value(forKey: 1) == "a\nb")
+    #expect(table.value(forKey: 2) == "c")
+  }
+
+  @Test
+  func ignoresAByteOrderMark() {
+    #expect(CSTTable("\u{FEFF}1 ^one^").value(forKey: 1) == "one")
+  }
+
+  @Test
+  func blankLinesAndCommentsDoNotSeparateAKeyFromItsValue() {
+    let table = CSTTable(
+      """
+      3
+
+      // A comment.
+      ^three^
+      """
+    )
+
+    #expect(table.value(forKey: 3) == "three")
+  }
+
+  @Test(arguments: ["ok", "24", ""])
+  func keyMustMatchWhole(key: String) {
+    let table = CSTTable(
+      """
+      ok button ^button^
+      24 012 ^reason^
+      ^keyless^
+      """
+    )
+
+    #expect(table.value(forKey: key) == nil)
+  }
+
+  @Test
+  func textAfterAClosingCaretIsNotTheNextValuesName() {
+    let table = CSTTable(
+      """
+      ^one line^ a note
+      ^two
+      lines^ another note
+      ^last^
+      """
+    )
+
+    #expect(table.entries.map(\.name) == [nil, nil, nil])
+    #expect(table.entries.map(\.value) == ["one line", "two\nlines", "last"])
+  }
+
+  @Test
+  func keepsEmptyValues() {
+    let table = CSTTable(
+      """
+      ^^
+      1 ^^
+      """
+    )
+
+    #expect(table.entries.map(\.value) == ["", ""])
+    #expect(table.value(forKey: 1) == "")
+  }
+
+  @Test
+  func commentLinesAreRemovedFromValues() {
+    let table = CSTTable(
+      """
+      1 ^first
+        // A comment.
+      # Another.
+      /* A block
+      comment. */
+      last^
+      """
+    )
+
+    #expect(table.value(forKey: 1) == "first\nlast")
+  }
+
+  @Test
+  func onlyLineStartsBeginComments() {
+    let table = CSTTable(
+      """
+      1 ^a^ */
+      2 ^b // c^
+      """
+    )
+
+    #expect(table.value(forKey: 1) == "a")
+    #expect(table.value(forKey: 2) == "b // c")
+  }
+
+  @Test
+  func reportsARepeatedKeyAtItsLineInTheFile() {
+    let table = CSTTable(
+      """
+      // A comment.
+      2 ^first^
+
+      2 ^second^
+      """
+    )
+
+    #expect(table.value(forKey: 2) == "first")
+    #expect(table.problems == [.repeatedKey("2", line: 4)])
+  }
+
+  @Test(arguments: ["next ^separate^", "ok button ^separate^", "  next ^separate^"])
+  func unclosedValueStopsAtAWholeEntry(entry: String) {
+    let key = entry.prefix { $0 != "^" }.trimmingCharacters(in: .whitespaces)
+    let table = CSTTable("broken ^unfinished\nmore\n\(entry)")
+
+    #expect(table.value(forKey: "broken") == nil)
+    #expect(table.value(forKey: key) == "separate")
+    #expect(table.problems == [.unclosedValue(line: 1)])
+    #expect(table.entries.count == 2)
+  }
+
+  @Test
+  func unclosedValueGivesItsLastLineToTheNextValue() {
+    let table = CSTTable(
+      """
+      broken ^unfinished
+      next
+
+      ^separate^
+      """
+    )
+
+    #expect(table.value(forKey: "next") == "separate")
+    #expect(table.entries.map(\.value) == [nil, "separate"])
+  }
+
+  @Test
+  func unclosedValueAtTheEndOfAFileKeepsItsPlace() {
+    let table = CSTTable(
+      """
+      ^first^
+      // A comment.
+      ^unfinished
+      more
+      """
+    )
+
+    #expect(table.entries.map(\.value) == ["first", nil])
+    #expect(table.problems == [.unclosedValue(line: 3)])
+  }
+
+  @Test
+  func aValueCanCloseOnALineThatOpensAnother() {
+    let table = CSTTable(
+      """
+      1 ^a
+      b^ 2 ^c
+      d^
+      """
+    )
+
+    #expect(table.value(forKey: 1) == "a\nb")
+    #expect(table.value(forKey: 2) == "c\nd")
+    #expect(table.problems.isEmpty)
   }
 
   @Test

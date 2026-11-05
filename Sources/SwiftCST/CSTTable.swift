@@ -62,11 +62,10 @@ public struct CSTTable: Sendable {
 extension CSTTable {
   /// Creates a table from the text of a CST document.
   ///
-  /// Scanning isn't implemented yet, so the table is always empty.
-  ///
   /// - Parameter content: The CST document to read.
   public init(_ content: String) {
-    self.init(entries: [], problems: [])
+    let scanner = TableScanner(content: content)
+    self.init(entries: scanner.entries, problems: scanner.problems)
   }
 
   /// Returns the value for `key`, which can be a key or a name.
