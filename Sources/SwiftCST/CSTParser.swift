@@ -8,8 +8,7 @@ public struct CST {
     key: some CustomStringConvertible,
     variables: [any CustomStringConvertible]
   ) -> String {
-    let ledger = Ledger(content: content)
-    let entry = ledger.entries(forKey: String(describing: key))
+    let entry = CSTTable(content).value(forKey: key) ?? missingMessage
     let stringVariables = variables.map { String(describing: $0) }
 
     return VariableInterpolator().substitute(entry, with: stringVariables)
@@ -24,9 +23,11 @@ extension CST {
   /// - Parameters:
   ///   - content: The CST document to parse.
   ///   - key: The entry key to find.
-  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
-  ///     placeholders.
-  /// - Returns: The parsed value, or the missing-message marker.
+  ///   - variables: Values used to fill the value's placeholders in order. `%s`, `%d`, `%i`, `%u`,
+  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
+  ///     one percent sign.
+  /// - Returns: The parsed value, or the missing-message marker. Use ``CSTTable`` to tell a missing
+  ///   value from real text.
   public static func parse(
     _ content: String,
     key: some CustomStringConvertible,
@@ -43,9 +44,11 @@ extension CST {
   /// - Parameters:
   ///   - content: The CST document to parse.
   ///   - key: The entry key to find.
-  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
-  ///     placeholders.
-  /// - Returns: The parsed value, or the missing-message marker.
+  ///   - variables: Values used to fill the value's placeholders in order. `%s`, `%d`, `%i`, `%u`,
+  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
+  ///     one percent sign.
+  /// - Returns: The parsed value, or the missing-message marker. Use ``CSTTable`` to tell a missing
+  ///   value from real text.
   @available(*, deprecated, message: "Parsing is synchronous; use the synchronous overload.")
   public static func parse(
     _ content: String,

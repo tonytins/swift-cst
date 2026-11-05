@@ -121,6 +121,53 @@ struct ParserTests {
     #expect(parsed == "%d")
   }
 
+  @Test(arguments: ["ok", "24", ""])
+  func keyMustMatchWhole(key: String) {
+    let input = """
+      ok button ^button^
+      24 012 ^reason^
+      ^keyless^
+      """
+
+    #expect(CST.parse(input, key: key) == "*** MISSING ***")
+  }
+
+  @Test
+  func unclosedValueDoesNotConsumeAKeyWithSpaces() {
+    let input = """
+      1 ^unclosed
+      ok button ^button^
+      """
+
+    #expect(CST.parse(input, key: 1) == "*** MISSING ***")
+    #expect(CST.parse(input, key: "ok button") == "button")
+  }
+
+  @Test(arguments: ["%s", "%d", "%i", "%u", "%ld", "%li", "%lu"])
+  func placeholdersTakeAVariable(placeholder: String) {
+    #expect(CST.parse("1 ^[\(placeholder)]^", key: 1, variables: 7) == "[7]")
+  }
+
+  @Test(
+    arguments: zip(
+      ["%03d", "%3d", "%.2d", "%03i", "%.2u", "%02ld"],
+      ["007", "007", "07", "007", "07", "07"]
+    ))
+  func numberPlaceholdersPadWithZeros(placeholder: String, expected: String) {
+    #expect(CST.parse("1 ^\(placeholder)^", key: 1, variables: 7) == expected)
+  }
+
+  @Test
+  func doubledPercentBecomesOnePercentWithoutUsingAVariable() {
+    #expect(CST.parse("1 ^%%d %d%%^", key: 1, variables: 7) == "%d 7%")
+    #expect(CST.parse("1 ^100%%^", key: 1) == "100%")
+  }
+
+  @Test(arguments: ["%.d", "%ls", "%l", "%.", "%5", "to sell % for $", "<%>", "%x"])
+  func otherUsesOfPercentStayAsWritten(text: String) {
+    #expect(CST.parse("1 ^\(text)^", key: 1, variables: 7) == text)
+  }
+
   @Test
   func asyncParserCompatibilityOverload() async {
     let parsed = await CST.parse("hello ^Hello!^", key: "hello")

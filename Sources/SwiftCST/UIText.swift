@@ -51,8 +51,9 @@ public struct UIText: Sendable {
   /// - Parameters:
   ///   - id: The numeric identifier in the CST filename.
   ///   - key: The entry key in the file.
-  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
-  ///     placeholders in the entry.
+  ///   - variables: Values used to fill the entry's placeholders in order. `%s`, `%d`, `%i`, `%u`,
+  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
+  ///     one percent sign.
   /// - Throws: An error if the language directory or selected file cannot be
   ///   read.
   /// - Returns: The localized entry, or the missing-message marker.
@@ -72,8 +73,9 @@ public struct UIText: Sendable {
   /// - Parameters:
   ///   - id: The numeric identifier in the CST filename.
   ///   - key: The entry key in the file.
-  ///   - variables: Values used to replace `%s`, `%d`, and padded `%Nd`
-  ///     placeholders in the entry.
+  ///   - variables: Values used to fill the entry's placeholders in order. `%s`, `%d`, `%i`, `%u`,
+  ///     and `%ld` take a variable, and `%03d`, `%3d`, and `%.3d` pad it with zeros. `%%` becomes
+  ///     one percent sign.
   /// - Throws: An error if the language directory or selected file cannot be
   ///   read.
   /// - Returns: The localized entry, or the missing-message marker.
