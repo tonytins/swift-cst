@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.3.2
+
+Added:
+
+- `UIText(directory:)`, which reads tables kept directly in a directory, such as a game's
+  own `uitext` folder, with no language directory. Like `UIText(gameData:language:)`, it
+  searches only that directory, not the app bundle.
+
 ## 0.3.1
 
 Added:

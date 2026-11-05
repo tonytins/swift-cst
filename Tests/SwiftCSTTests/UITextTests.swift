@@ -387,6 +387,36 @@ struct UITextTests {
   }
 
   @Test
+  func directoryReadsTablesKeptDirectlyInside() throws {
+    let references = "1 ^\u{2}<cst><cst_id>2</cst_id><string_id>0</string_id></cst>^"
+
+    try withGameData(["uitext": "Caption ^Loading %s^\n^at position 1^"]) { gameData throws in
+      let directory = gameData.appendingPathComponent("uitext", isDirectory: true)
+      try Data(references.utf8).write(to: directory.appendingPathComponent("_3_refs.cst"))
+      try Data("^target^".utf8).write(to: directory.appendingPathComponent("_2_targets.cst"))
+      let catalog = UIText(directory: directory)
+
+      #expect(catalog.language == "")
+      #expect(catalog.basePath == directory)
+      #expect(
+        try catalog.textIfPresent(for: 1, key: "Caption", variables: "lots") == "Loading lots")
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == "at position 1")
+      #expect(try catalog.textIfPresent(for: 3, key: 1) == "target")
+      #expect(try catalog.table(for: 1)?.problems == [])
+    }
+  }
+
+  @Test
+  func directoryMissesWhenItDoesNotExist() throws {
+    try withGameData([:]) { gameData throws in
+      let catalog = UIText(directory: gameData.appendingPathComponent("nowhere"))
+
+      #expect(try catalog.textIfPresent(for: 1, key: 1) == nil)
+      #expect(try catalog.text(for: 1, key: 1) == "*** MISSING ***")
+    }
+  }
+
+  @Test
   func gameDataMissesWithoutEitherDirectory() throws {
     try withGameData([:]) { gameData throws in
       #expect(try UIText(gameData: gameData).textIfPresent(for: 1, key: 1) == nil)

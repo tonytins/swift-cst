@@ -28,10 +28,12 @@ private final class LoadedTables: @unchecked Sendable {
 /// New & Improved keeps its tables in `gamedata/uitext/<language>.dir`. Earlier versions have one
 /// language in `gamedata/uitext.dir`. `UIText(gameData:language:)` reads either.
 public struct UIText: Sendable {
-  /// The language directory to search, such as `english.dir`.
+  /// The language directory to search, such as `english.dir`. It's empty for a catalog made with
+  /// ``init(directory:)``.
   public let language: String
 
-  /// The directory containing the language directories.
+  /// The directory containing the language directories, or the directory holding the tables for
+  /// a catalog made with ``init(directory:)``.
   public let basePath: URL
 
   /// Creates a text catalog.
@@ -82,14 +84,30 @@ public struct UIText: Sendable {
     }
   }
 
-  let fallbackPath: URL?
+  /// Creates a text catalog for a directory holding the tables themselves, with no language
+  /// directory, such as a game's own `uitext` folder.
+  ///
+  /// Only this directory is searched, not the app bundle. When it doesn't exist, every lookup
+  /// misses.
+  ///
+  /// - Parameter directory: The directory holding files named `_<id>_<name>.cst`.
+  public init(directory: URL) {
+    language = ""
+    basePath = directory
+    searchDirectories = [directory]
+  }
+
+  /// The directories holding tables, searched in order.
+  private let searchDirectories: [URL]
 
   private let tables = LoadedTables()
 
   init(language: String, basePath: URL, fallbackPath: URL?) {
     self.language = language
     self.basePath = basePath
-    self.fallbackPath = fallbackPath
+    searchDirectories = [basePath, fallbackPath].compactMap {
+      $0?.appendingPathComponent("\(language).dir", isDirectory: true)
+    }
   }
 
   /// Returns a localized string from the CST file whose name contains `id`.
@@ -293,11 +311,7 @@ public struct UIText: Sendable {
   }
 
   private func fileURL(for id: Int) throws -> URL? {
-    for searchPath in [basePath] + [fallbackPath].compactMap({ $0 }) {
-      let languageDirectory = searchPath.appendingPathComponent(
-        "\(language).dir",
-        isDirectory: true
-      )
+    for languageDirectory in searchDirectories {
       guard FileManager.default.fileExists(atPath: languageDirectory.path) else {
         continue
       }

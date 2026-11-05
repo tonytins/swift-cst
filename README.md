@@ -46,7 +46,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.3.1"),
+        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.3.2"),
     ],
     targets: [
         .executableTarget(name: "<your-game>", dependencies: [
@@ -109,6 +109,9 @@ itself, whether New & Improved's `uitext/<language>.dir` or the earlier `uitext.
 ```swift
 let install = UIText(gameData: URL(fileURLWithPath: "/path/to/gamedata"))
 ```
+
+For a game's own tables kept directly in a folder, with no language directory, use
+`UIText(directory:)`.
 
 Missing file IDs, keys, and language directories return `*** MISSING ***`. To tell a
 missing string from real text, use `textIfPresent`, which returns `nil` instead:

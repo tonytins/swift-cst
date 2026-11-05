@@ -141,6 +141,13 @@ let french = UIText(gameData: URL(fileURLWithPath: "/path/to/gamedata"), languag
 This searches only the install, not the app bundle. With an earlier version, `language`
 doesn't apply, and the catalog's `language` is `uitext`.
 
+A game's own tables don't need a language directory. To read the tables kept directly in
+a folder, pass the folder itself:
+
+```swift
+let ownText = UIText(directory: URL(fileURLWithPath: "/path/to/Interface/uitext"))
+```
+
 `UIText` is built for The Sims Online's tables, so it also:
 
 - Reads UTF-8 and Windows-1252 files.
