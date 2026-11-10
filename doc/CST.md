@@ -84,6 +84,9 @@ A note for translators.
 ^A value with a note above it^
 ^A value on its own^ with a note after it
 ^Another value on its own^
+9.A label
+^A numbered key above its value^
+10: ^A numbered key on its line^
 ```
 
 | Lookup | Result |
@@ -95,6 +98,8 @@ A note for translators.
 | `A note for translators.`, or `6` through a wrapper | `A value with a note above it` |
 | `7` through a wrapper | `A value on its own` |
 | `8` through a wrapper | `Another value on its own` |
+| `9`, or `A label` | `A numbered key above its value` |
+| `10` | `A numbered key on its line` |
 
 ## Files
 
@@ -143,9 +148,10 @@ A value's key depends on what comes before its opening caret:
 
 Blank lines and comments between a line and its value do not matter.
 
-### Numbers with a separator
+### Numbered keys
 
-**Unsettled.** SSC writes some keys as a number followed by a period or colon:
+**Observed.** SSC writes some keys as a number followed by a period or colon, in either place
+rule 1 or rule 3 reads:
 
 ```text
 1.new house window name
@@ -157,12 +163,15 @@ Blank lines and comments between a line and its value do not matter.
 1:^biped^
 ```
 
-Today, `1:` is the whole key of `biped` under rule 1, and `1.new house window name` and `5.`
-are names under rule 3, so a lookup for `1` or `5` finds neither. The numbering, and SSC's
-notes describing what each slot is for, suggest the number is meant as the key and the rest as
-a label. Reading them that way is planned, and would change what lookups return for these
-shapes. No line in any of the three TSO versions starts with a number and a period or colon,
-so the change would only affect tables like SSC's.
+The number is the key, and any text after the separator, trimmed, is the value's name, so
+`1.new house window name` gives the key `1` and the name `new house window name`, `5.` gives
+the key `5` alone, and `1:` gives the key `1`. A lookup finds the value by either. The
+numbering, and SSC's notes on what each slot is for, show the number is meant as the key and the
+rest as a label, though nothing shows how SSC's own code reads them.
+
+A digit right after the separator means the text is something else, such as `1.5` or `10:30`,
+and rules 1 and 3 apply to it whole. No line in any of the three TSO versions starts with a
+number and a period or colon, so this rule changes nothing there.
 
 ### Positions (Wrapper)
 
@@ -172,7 +181,8 @@ closed. Keys are text, so position 5 is the key `5`.
 
 A key written in the file always wins over a position, so a position only reaches a value
 with no key of its own (Not seen: no real table has this collision). A name can't collide
-with a position, because a number on the line above a value is its key.
+with a position, because a number on the line above a value is its key. The one exception is a
+numbered key whose label is itself a number, such as `3. 7`, which no real table has.
 
 Positions matter more in SSC than in TSO: 1,420 of SSC's 1,606 values have neither a key nor a
 name, and SSC's tables say which slots are "old unused entries" and which are "for motive

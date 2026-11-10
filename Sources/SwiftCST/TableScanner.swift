@@ -122,6 +122,9 @@ struct TableScanner {
 
     let key = text.trimmingCharacters(in: .whitespaces)
     guard key.isEmpty else {
+      if let numbered = Self.numberedKey(key) {
+        return (numbered.key, numbered.label)
+      }
       return (key, nil)
     }
 
@@ -129,7 +132,39 @@ struct TableScanner {
       return (nil, nil)
     }
 
-    return lineAbove.allSatisfy { $0.isASCII && $0.isNumber } ? (lineAbove, nil) : (nil, lineAbove)
+    if lineAbove.allSatisfy(Self.isDigit) {
+      return (lineAbove, nil)
+    }
+    if let numbered = Self.numberedKey(lineAbove) {
+      return (numbered.key, numbered.label)
+    }
+    return (nil, lineAbove)
+  }
+
+  /// Splits a number followed by a period or colon, such as `1.new house window name`, `5.`, or
+  /// `1:`, into the number as a key and the rest, if any, as a label.
+  ///
+  /// A digit right after the separator means the text is a number such as `1.5` or a time such as
+  /// `10:30`, not a numbered key.
+  private static func numberedKey(_ text: String) -> (key: String, label: String?)? {
+    let digits = text.prefix(while: isDigit)
+    guard !digits.isEmpty, let separator = text[digits.endIndex...].first,
+      separator == "." || separator == ":"
+    else {
+      return nil
+    }
+
+    let rest = text[digits.endIndex...].dropFirst()
+    guard rest.first.map(isDigit) != true else {
+      return nil
+    }
+
+    let label = rest.trimmingCharacters(in: .whitespaces)
+    return (String(digits), label.isEmpty ? nil : label)
+  }
+
+  private static func isDigit(_ character: Character) -> Bool {
+    character.isASCII && character.isNumber
   }
 
   private mutating func addValue(_ value: String, key: String?, name: String?, line: Int) {

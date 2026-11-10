@@ -35,6 +35,8 @@ struct CSTTableTests {
       Entry(key: nil, name: "A note for translators.", value: "A value with a note above it"),
       Entry(key: nil, name: nil, value: "A value on its own"),
       Entry(key: nil, name: nil, value: "Another value on its own"),
+      Entry(key: "9", name: "A label", value: "A numbered key above its value"),
+      Entry(key: "10", name: nil, value: "A numbered key on its line"),
     ]
 
     let table = CSTTable(document)
@@ -291,6 +293,44 @@ struct CSTTableTests {
     let table = CSTTable(entries: [Entry(key: "1", name: nil, value: "one")], problems: [])
 
     #expect(table.value(forKey: "2") == nil)
+  }
+
+  @Test
+  func numberedKeysKeepTheirLabelAsAName() {
+    let table = CSTTable(
+      """
+      1.new house window name
+      \t^New World^
+
+      5.
+      \t^:not used^
+
+      19. lights directory
+      \t^Lights^
+      1:^biped^
+      """
+    )
+
+    #expect(
+      table.entries == [
+        Entry(key: "1", name: "new house window name", value: "New World"),
+        Entry(key: "5", name: nil, value: ":not used"),
+        Entry(key: "19", name: "lights directory", value: "Lights"),
+        Entry(key: "1", name: nil, value: "biped"),
+      ]
+    )
+    #expect(table.value(forKey: 1) == "New World")
+    #expect(table.value(forKey: "lights directory") == "Lights")
+    #expect(table.problems == [.repeatedKey("1", line: 9)])
+  }
+
+  @Test(arguments: ["1.5", "10:30", "1.5 kg", "v1.2", "1 . 2"])
+  func numbersThatAreNotNumberedKeysStayWhole(text: String) {
+    let above = CSTTable("\(text)\n^above^")
+    let before = CSTTable("\(text) ^before^")
+
+    #expect(above.value(forKey: text) == "above")
+    #expect(before.value(forKey: text) == "before")
   }
 
   /// Reads every table of a local Sims Steering Committee install, when `SSC_GAME_DIR` is set.

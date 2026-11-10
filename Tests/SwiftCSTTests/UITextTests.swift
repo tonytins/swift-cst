@@ -182,6 +182,9 @@ struct UITextTests {
         ("6", "A value with a note above it"),
         ("7", "A value on its own"),
         ("8", "Another value on its own"),
+        ("9", "A numbered key above its value"),
+        ("A label", "A numbered key above its value"),
+        ("10", "A numbered key on its line"),
       ]
 
       for (key, value) in expected {

@@ -23,7 +23,6 @@ records each release.
 
 - Build with `swift build`.
 - Run the test suite with `swift test`.
-- Format with `./format.sh`, which also lints.
 - For a change to the public API or to lookup results, also call the library from a
   small scratch package outside the repository.
 - CI builds and tests on macOS only. Report what you could not run, such as macOS from

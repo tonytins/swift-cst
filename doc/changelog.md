@@ -1,5 +1,19 @@
 # Change Log
 
+## Unreleased
+
+Changes that can affect existing code:
+
+- A number followed by a period or colon is read as a numbered key, as Sims Steering
+  Committee writes them. `1.new house window name` on the line above a value gives it the
+  key `1` and the name `new house window name`, `5.` gives the key `5`, and `1:^biped^`
+  gives the key `1`. Before, `1:` was the whole key and the others were names, so lookups
+  for `1:`, `5.`, or the whole `1.new house window name` line now miss. A digit right after
+  the separator, as in `1.5` or `10:30`, still leaves the text whole.
+
+No line in the beta, base game, or New & Improved has this shape, so lookups in The Sims
+Online's tables are unchanged.
+
 ## 0.3.2
 
 Added:

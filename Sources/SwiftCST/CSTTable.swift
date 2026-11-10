@@ -7,10 +7,16 @@ public struct CSTTable: Sendable {
   public struct Entry: Sendable, Equatable {
     /// The key written for this value, either before it on the same line or as a number alone on
     /// the nearest line above.
+    ///
+    /// A number followed by a period or colon, such as `1.label`, `5.`, or `1:`, gives the number
+    /// alone as the key, in either place.
     public let key: String?
 
     /// Other text on the nearest line above this value. It may be a name that code looks up, or a
     /// note for translators. Nothing in the file separates the two.
+    ///
+    /// For a numbered key such as `1.new house window name`, this is the label after the
+    /// separator, here `new house window name`, so a value can have both a key and a name.
     public let name: String?
 
     /// The text between the carets, or `nil` if the value was never closed.
