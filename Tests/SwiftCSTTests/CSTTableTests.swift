@@ -292,4 +292,31 @@ struct CSTTableTests {
 
     #expect(table.value(forKey: "2") == nil)
   }
+
+  /// Reads every table of a local Sims Steering Committee install, when `SSC_GAME_DIR` is set.
+  ///
+  /// SSC keeps its tables in `.dir` folders beside its `.iff` files, named `#<id>#<name>.cst`.
+  @Test
+  func readsEveryTableOfALocalSteeringCommitteeInstall() throws {
+    guard let install = ProcessInfo.processInfo.environment["SSC_GAME_DIR"] else {
+      return
+    }
+
+    let enumerator = try #require(
+      FileManager.default.enumerator(
+        at: URL(fileURLWithPath: install), includingPropertiesForKeys: nil)
+    )
+    let files = enumerator.compactMap { $0 as? URL }.filter {
+      $0.pathExtension.lowercased() == "cst"
+    }
+
+    #expect(!files.isEmpty)
+
+    for file in files {
+      let table = CSTTable(try String(contentsOf: file, encoding: .utf8))
+
+      #expect(table.problems.isEmpty, "\(file.lastPathComponent)")
+      #expect(table.entries.allSatisfy { $0.value != nil }, "\(file.lastPathComponent)")
+    }
+  }
 }

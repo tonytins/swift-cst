@@ -4,7 +4,7 @@ SwiftCST is a library for parsing Maxis' key-value pair format. It can be used w
 
 ## What is CST?
 
-Caret-Separated Text (or CST) is a key-value pair format represented by digits or words as keys and the value as text enclosed between carets. (e.g. `<key> ^<value>^`) This was used by The Sims Online to make translation easier. While it began there, it's handy on its own for any project that wants a clear path to translation.
+Caret-Separated Text (or CST) is a string-text format: a plain-text resource format with digits or words as keys and each value enclosed between carets. (e.g. `<key> ^<value>^`) Maxis used it as early as Sims Steering Committee, a prototype of The Sims, for animation, file, and texture names, and later in The Sims Online for its interface text. It's handy on its own for any project that wants a simple table of strings or a clear path to translation.
 
 ## Features
 

@@ -2,8 +2,9 @@
 
 ## Project structure
 
-SwiftCST is a general-purpose Swift library for Caret-Separated Text (`.cst`), the
-format The Sims Online (TSO) used for its interface text. It has two layers, and text
+SwiftCST is a general-purpose Swift library for Caret-Separated Text (`.cst`), a
+string-text format Maxis used in Sims Steering Committee (SSC) and later in The Sims
+Online (TSO) for its interface text. It has two layers, and text
 lookups run through them in this order: `UIText`, then the CST core.
 
 - **CST core** (`CST`, `CSTTable`) reads a document from a `String`. It is public so
@@ -48,9 +49,9 @@ labels how sure each rule is. Change it along with any change to how files are r
 read its example directly, so the page and the code can't drift apart.
 
 Hand-written samples tend to hold only the shapes their author already knows about, so check
-parser changes against real tables when you have them. `TSO_GAME_DIR`, `TSO_CLASSIC_DIR`, and
-`TSO_BETA_DIR` point to local installs when they are set, and `swift test` then reads every
-table in them. Do not commit files from a game install.
+parser changes against real tables when you have them. `SSC_GAME_DIR`, `TSO_GAME_DIR`,
+`TSO_CLASSIC_DIR`, and `TSO_BETA_DIR` point to local installs when they are set, and `swift test`
+then reads every table in them. Do not commit files from a game install.
 
 See [REVIEW.md](REVIEW.md) for the project's review checklist.
 
