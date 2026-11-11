@@ -56,6 +56,10 @@ print(output)
 Keys must match whole, so `ok` doesn't find `ok button`. Keys can contain spaces
 and can be indented.
 
+A number followed by a period or colon is a numbered key, as Sims Steering Committee
+writes them. `1.window name` on the line above a value, or `1:` before it, gives the key
+`1`, and any text after the separator becomes the value's name, so either finds it.
+
 Whole-line `//` and `#` comments are ignored. Block comments beginning with
 `/*` are ignored through the line containing `*/`. These comment lines are also
 ignored inside multiline values. An unterminated value does not consume later
@@ -180,3 +184,41 @@ Other filesystem errors are thrown to the caller.
 
 Parsing and file lookup are synchronous. Async overloads remain temporarily
 available for source compatibility and are deprecated.
+
+### CSTDirectory and CSTLayers
+
+`UIText` is built around The Sims Online. For other layouts, `CSTDirectory` reads every
+table in one folder at once, named `#<id>#<name>.cst` as Sims Steering Committee writes
+them, or `_<id>_<name>.cst`. It decodes UTF-8 and Windows-1252, ignores other files, and
+never touches the disk again after it's created:
+
+```swift
+import Foundation
+
+let global = try CSTDirectory(contentsOf: URL(fileURLWithPath: "/path/to/Global/Global.dir"))
+let animations = global.table(for: 128)
+```
+
+`problems` lists any table ID that more than one file uses. The first file by name is
+kept. You can also build one from tables in memory with `CSTDirectory(tables:)`.
+
+`CSTLayers` looks through several directories in order, top layer first. Sims Steering
+Committee lays each person's tables over the global ones this way, by position:
+
+```swift
+let ross = try CSTDirectory(contentsOf: URL(fileURLWithPath: "/path/to/Objects/ross.dir"))
+let layers = CSTLayers([ross, global])
+
+let animation = layers.value(inTable: 130, atPosition: 66)
+let filledIn = layers.value(inTable: 130, atPosition: 20, treatingEmptyAsMissing: true)
+```
+
+A lookup moves to the next layer when a layer has no such table or value. An empty value
+is returned as it is, unless you pass `treatingEmptyAsMissing: true`, because in most
+tables an empty value is real empty text. Positions count every entry from 0, as
+`CSTTable.entries` does. `layers` is a plain array, so adding or removing a layer, such as
+a mod, changes nothing in the others. Look up keys and names with
+`value(inTable:forKey:treatingEmptyAsMissing:)`.
+
+These don't follow references between tables or fill placeholders. Use
+`CST.format(_:with:)` for placeholders.

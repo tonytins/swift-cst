@@ -14,6 +14,15 @@ Changes that can affect existing code:
 No line in the beta, base game, or New & Improved has this shape, so lookups in The Sims
 Online's tables are unchanged.
 
+Added:
+
+- `CSTDirectory`, which reads every table in a folder at once, named `#<id>#<name>.cst`
+  as Sims Steering Committee writes them or `_<id>_<name>.cst`, and reports any table ID
+  used by more than one file
+- `CSTLayers`, which looks a table's value up by key or position through several
+  directories in order, such as a person's tables over the global ones. An empty value
+  moves on to the next layer only when asked with `treatingEmptyAsMissing: true`.
+
 ## 0.3.2
 
 Added:

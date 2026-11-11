@@ -224,7 +224,7 @@ public struct UIText: Sendable {
       return nil
     }
 
-    let table = CSTTable(Self.decoded(try Data(contentsOf: fileURL)))
+    let table = CSTTable(decodedTableText(try Data(contentsOf: fileURL)))
     tables[id] = table
     return table
   }
@@ -299,15 +299,6 @@ public struct UIText: Sendable {
     }
 
     return String(value[open.upperBound..<close.lowerBound])
-  }
-
-  /// Decodes a file as UTF-8, then as Windows-1252, the two encodings real tables use.
-  ///
-  /// A file that is neither still loads, with replacement characters for its invalid bytes.
-  private static func decoded(_ data: Data) -> String {
-    String(data: data, encoding: .utf8)
-      ?? String(data: data, encoding: .windowsCP1252)
-      ?? String(decoding: data, as: UTF8.self)
   }
 
   private func fileURL(for id: Int) throws -> URL? {

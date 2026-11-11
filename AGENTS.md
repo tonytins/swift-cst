@@ -4,15 +4,19 @@
 
 SwiftCST is a general-purpose Swift library for Caret-Separated Text (`.cst`), a
 string-text format Maxis used in Sims Steering Committee (SSC) and later in The Sims
-Online (TSO) for its interface text. It has two layers, and text
-lookups run through them in this order: `UIText`, then the CST core.
+Online (TSO) for its interface text. It has two layers: wrappers that load files, then the
+CST core they read through.
 
 - **CST core** (`CST`, `CSTTable`) reads a document from a `String`. It is public so
   anyone can write their own wrapper, and it must not assume TSO's file layout. It owns
   comments, keys, values, and malformed entries.
-- **`UIText`** mimics how TSO loads its text, and it may be TSO-specific. It owns file
-  names, language directories, and text encodings. It should use only the core's public
-  API.
+- **Wrappers** find tables on disk and answer lookups. They use only the core's public API,
+  apart from a shared internal helper that decodes files.
+  - **`UIText`** mimics how TSO loads its text, and it may be TSO-specific. It owns TSO's
+    file names, language directories, positions in key lookups, and references.
+  - **`CSTDirectory`** and **`CSTLayers`** are the general loader, first built for SSC's
+    `.dir` folders. They own both file name patterns and lookups through layers, and must
+    not assume either game's meaning for a value.
 
 `Sources/SwiftCST` holds the library, `Tests/SwiftCSTTests` covers its behavior, and
 `addons` holds editor support. [doc/README.md](doc/README.md) documents usage,

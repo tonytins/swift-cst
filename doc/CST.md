@@ -22,6 +22,13 @@ name, such as `sigmund.dir` beside `sigmund.iff`. The likely reading is that a `
 resource file kept as loose files, and that a CST file is a string set written out as text (not
 Confirmed: no SSC code has been read, only its file names and strings).
 
+The SSC build is dated June 4, 1998, and was released on archive.org in 2023. Its tables'
+dates, if the archive kept them, run from August 1997 to the day before the build, so the
+format was still in use for animation data then. Not every table was kept up to date: the goal
+table is the oldest file, and many of its values are placeholders such as `This is house 1`,
+while the build's actual scenario briefs are in `Level1.iff` through `Level4.iff`, not in any
+CST table.
+
 TSO later used the same format for its interface text, in `uitext.dir`, and gave it new jobs
 there, such as references between tables and a script for the credits. That history explains
 why TSO's tables use CST in ways a plain translation file wouldn't: the format was never only
@@ -196,10 +203,15 @@ numbered TSO table starts at 0, while 111 start at 1, and table 136's own notes 
 and either suits the name. That screen requires logging in, so with the game's servers gone
 it can't be checked by running the game. A screenshot from when it was live would settle it.
 
-SSC adds a weak hint toward 0. Its animation tables follow each value with the name of a C
-constant, such as `^adult-tantrum^	AnimMotiveTantrum`, which suggests the order once matched
-an enumeration in code, and C enumerations start at 0. SSC's numbered keys start at 1, though,
-which leaves the question open. Tables read in order, as described under
+SSC points toward 0, though not conclusively. Its animation tables follow each value with the
+name of a C constant, such as `^adult-tantrum^	AnimMotiveTantrum`, which suggests the order
+once matched an enumeration in code. More tellingly, they seem to keep position 0 as a blank
+placeholder. Global table 128 starts with one empty value and then `adult-haveaccident`. Both
+tables 130 say "first 19 are old unused entries" but start with 20 empty values, and their
+first real animation sits at position 20. A blank slot 0 is only needed if code counts from 0
+and the first real entry is numbered 1. That would also fit TSO, where no numbered table starts
+at 0, and SSC's numbered keys and labels, which all start at 1, such as `house 7` on the
+seventh value of the goal table. Tables read in order, as described under
 [What values hold](#what-values-hold), work either way.
 
 ### Text outside values
@@ -262,7 +274,7 @@ should hand values back untouched (Observed).
 | SSC | 128, 130 | Animation names, each followed by the constant it stands for |
 | SSC | 200 | Body, texture, and bone names, such as `HEAD` and `R_HAND` |
 | SSC | 300, in `Global.dir` | Motive curves as points, such as `(10,10),(-45,0)` |
-| SSC | 300, in `Shell.dir` | Tutorial goals for each house, several paragraphs long |
+| SSC | 300, in `Shell.dir` | Goals for each of the 18 houses, some several paragraphs long and some placeholders |
 | TSO | 148 | Text, then a number of milliseconds to show it |
 | TSO | 145 | Coordinates such as `(88;6)` alternating with button labels |
 | TSO | 161 | Keyboard shortcuts such as `^p^ pause`, described by the text after each value |
@@ -292,10 +304,18 @@ just placeholders for what the person's table should be overriding", and the per
 "blank string get filled in from the global table". So a person's table is laid over the
 global one by position, and an empty value there means "use the global table's value".
 
-A wrapper that supports this looks a position up in the top table first and falls back to the
-base table when the value is empty or missing. Whether an empty value always means "fall back"
-or only in tables meant as overrides is Unsettled, since TSO's empty values look like real empty
-text. A reader knows nothing about layers and returns empty values as written.
+The positions line up in the real tables. Ross's value at position 66 is `ross-standing-loop`
+where the global table has `duchess-standing-loop`, and his walking animations replace the
+Duchess's the same way. The three people the prototype's scenarios use, Ross, Sam, and
+Mercedes, each fill 39 slots of their own. The six left over from earlier builds fill none, so
+everything they do comes from the global table.
+
+A wrapper that supports this looks a value up in the top layer first and moves to the next
+layer when the value is missing. Whether an empty value also means "move on" is the caller's
+choice, not the wrapper's: SSC's override tables mean it, while TSO's empty values look like
+real empty text (Unsettled). SwiftCST's `CSTLayers` returns empty values unless asked with
+`treatingEmptyAsMissing`. A reader knows nothing about layers and returns empty values as
+written.
 
 ## Repeated keys
 
