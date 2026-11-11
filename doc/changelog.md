@@ -1,6 +1,10 @@
 # Change Log
 
-## Unreleased
+## 0.4.0
+
+SwiftCST now reads the tables of Sims Steering Committee, a prototype of The Sims
+and the earliest known use of CST, and [the CST specification](CST.md) is reworked as a Draft
+around that history.
 
 Changes that can affect existing code:
 

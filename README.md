@@ -14,6 +14,9 @@ Caret-Separated Text (or CST) is a string-text format: a plain-text resource for
     - [x] Variables
     - [x] UTF-8 and Windows-1252 files
     - [x] References between tables
+- [x] Sims Steering Committee compatible
+    - [x] Numbered keys such as `1.label` and `1:`
+    - [x] `.dir` folders of `#<id>#<name>.cst` tables, laid over one another
 - [x] Multiline values
 - [x] C-style comments
 - [x] Malformed entries reported rather than stopping the read
@@ -46,7 +49,7 @@ let package = Package(
     // name, platforms, products, etc.
     dependencies: [
         // other dependencies
-        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.3.2"),
+        .package(url: "https://github.com/tonytins/swift-cst.git", from: "0.4.0"),
     ],
     targets: [
         .executableTarget(name: "<your-game>", dependencies: [
